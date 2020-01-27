@@ -1,4 +1,4 @@
-import numpy as np # Array manipulation
+import numpy as np
 
 
 def l1_norm(mat):

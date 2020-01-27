@@ -13,6 +13,14 @@
 \usepackage{titlesec}
 \usepackage{enumitem}
 \usepackage{arev}
+\usepackage{cite}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=red,
+    filecolor=magenta,      
+    urlcolor=red,
+}
 
 \setlength{\parindent}{4em}
 \setlength{\parskip}{1em}
@@ -21,35 +29,41 @@
   \section*{\normalfont\scshape #1}}
 
 
-\title{{\scshape\huge Identifying persons}}
+\title{{\scshape\huge AlgoLook}}
 \author{{\scshape\Large Uzmar Gómez}}
 
 \begin{document}
 
 \maketitle
 
-\ssection{Identification in video}
+% \ssection{Identification in video}
 
-\begin{enumerate}
-    \item[] \underline{}
+% \begin{enumerate}
+%     \item[] \underline{Principal Component Analysis}
 
-    This method
+%     This method
 
-    Advantages:
-    \begin{itemize}
-        \item a
-    \end{itemize}
+%     Advantages:
+%     \begin{itemize}
+%         \item a
+%     \end{itemize}
 
-    Disadvantages:
-    \begin{itemize}
-        \item a
-    \end{itemize}
-\end{enumerate}
+%     Disadvantages:
+%     \begin{itemize}
+%         \item a
+%     \end{itemize}
+% \end{enumerate}
 
 \ssection{Different Arquitectures}
 
-\begin{enumerate}
-    \item[] \underline{}
-\end{enumerate}
+In the article \cite{Tun2019b}, the authors talk on the performance on the detection of introders when using Apache Kafka and Spark. They mention
+
+Also, on the following \href{https://www.infoq.com/articles/video-stream-analytics-opencv/}{link}
+
+\bibliographystyle{unsrt}
+\bibliography{library.bib}
 
 \end{document}
+
+%https://www.infoq.com/articles/video-stream-analytics-opencv/
+%https://books.google.com.mx/books?id=R46dDwAAQBAJ&pg=PA777&lpg=PA777&dq=facial+recognition+spark&source=bl&ots=0ryABtNfF3&sig=ACfU3U3j847sjjCBd_9_ShihlcwWtM9PKA&hl=es-419&sa=X&ved=2ahUKEwic0KKq_5znAhWGLc0KHW9LALkQ6AEwIHoECAsQAQ#v=onepage&q=facial%20recognition%20spark&f=false
