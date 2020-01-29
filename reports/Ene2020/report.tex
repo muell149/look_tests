@@ -1,0 +1,85 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage{geometry}
+ \geometry{
+ total={170mm,257mm},
+ left=10mm,
+ top=10mm,
+ right=15mm,
+ bottom=15mm,
+ }
+\usepackage{lipsum}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{arev}
+\usepackage{cite}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    citecolor=blue,
+    linkcolor=red,
+    filecolor=red,      
+    urlcolor=red,
+}
+
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\renewcommand{\baselinestretch}{2.0}
+\newcommand{\ssection}[1]{%
+  \section*{\normalfont\scshape #1}}
+
+\renewcommand{\baselinestretch}{1.5}
+
+\title{{\scshape\huge AlgoLook}}
+\author{{\scshape\Large Uzmar Gómez}}
+
+\begin{document}
+\maketitle
+
+% \ssection{Identification in video}
+
+% \begin{enumerate}
+%     \item[] \underline{Principal Component Analysis}
+
+%     This method
+
+%     Advantages:
+%     \begin{itemize}
+%         \item a
+%     \end{itemize}
+
+%     Disadvantages:
+%     \begin{itemize}
+%         \item a
+%     \end{itemize}
+% \end{enumerate}
+
+\ssection{Architectures}
+
+The first reference we could find on the subject is in \cite{Pandey2018b}, a study on face recognition of pedestrians by analyzing live video streaming. They describe this process as computationally challenging, given that this video process involve different algorithms and steps, such as face detection, shadow removing, background substraction, feature extraction, and so on. They give the example of the face recognition algorithm, which can be executed very quickly and therefore is recommended to put it on more than one nodes in order to get the faster response. On the contrary, some heavy weight algorithms such as Gaussian mixture model for background substraction, need to be put into effect online if a system needs to process streaming video data. Therefore, in order to process video effectively and efficiently, the use of both batch processing capabilities and also real time in-memory processing capabilities is recommended. Apache Kafka deals the problem of live data transfer with high efficiency. 
+
+As for Spark, its a fast, generalised cluster-computing system. It offers an abstraction called ``resilient distributed datasets'' (RDDs) to support multi-pass applications that require low-latency data sharing across multiple parallel operations. RDDs can be stored in memory between queries without requiring replication. Instead, they rebuild lost data on failure using lineage: each RDD remembers how it was built from other datasets to rebuild itself.
+
+They solve the problem of pedestrian face detection first by receiving the video stream data from a cluster of IP cameras with the video stream collector, which uses the OpenCV video-processing library to convert a video stream into frames. It then sends the messages to the Kafka broker using the KafkaProducer client. To process a huge amount of video stream data without loss, it is necessary to store the stream data in temporary storage, so this client works as a buffer queue for the data that the video stream collector produces. Keeping the data in storage before processing ensures its durability and improves the overall performance of the system as processors can process data at different times and at different speeds depending on the load.
+  
+The video stream processor is built on Apache Spark, which uses a Structured Streaming API to consume and process messages from Kafka, and uses the OpenCV library to process video stream data. A similar architecture is described on the following \href{https://www.infoq.com/articles/video-stream-analytics-opencv/}{link}.
+
+In the article \cite{Tun2019b}, the authors talk about the performance on the detection of intruders when using Apache Kafka and Spark Streaming. They mention that, when experimenting on the UNSWNB-15 dataset, this architecture has a good performance in terms of processing time and fault-tolerance on this huge amount of data.
+
+\ssection{Programming Languages}
+
+Although there is little research on the subject, there had been some studies that compare the performance when using OpenCV,	 either with Python or with C++. 
+
+For instance, on the article \cite{Fatih2016}
+
+\cite{Susu2016}, \cite{Wang2012b}\cite{Chintapalli2016b}\cite{Yang2017b}
+
+
+\bibliographystyle{unsrt}
+\bibliography{library}
+
+\end{document}
+
+%https://www.infoq.com/articles/video-stream-analytics-opencv/
+%https://books.google.com.mx/books?id=R46dDwAAQBAJ&pg=PA777&lpg=PA777&dq=facial+recognition+spark&source=bl&ots=0ryABtNfF3&sig=ACfU3U3j847sjjCBd_9_ShihlcwWtM9PKA&hl=es-419&sa=X&ved=2ahUKEwic0KKq_5znAhWGLc0KHW9LALkQ6AEwIHoECAsQAQ#v=onepage&q=facial%20recognition%20spark&f=false
