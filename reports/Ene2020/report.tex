@@ -14,6 +14,7 @@
 \usepackage{enumitem}
 \usepackage{arev}
 \usepackage{cite}
+\usepackage{booktabs,tabularx}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -71,9 +72,42 @@ In the article \cite{Tun2019b}, the authors talk about the performance on the de
 
 Although there is little research on the subject, there had been some studies that compare the performance when using OpenCV,	 either with Python or with C++. 
 
-For instance, on the article \cite{Fatih2016}
+For instance, on the article \cite{Fatih2016} the authors explore the idea of using face recognition systems to detect if a student is absent from school. They check the different times for training and recognition of Eigenfaces, Fisherfaces and Local Binary Pattern algorithms used in face recognition, using OpenCV with both Python and C++ programming languages.
 
-\cite{Susu2016}, \cite{Wang2012b}\cite{Chintapalli2016b}\cite{Yang2017b}
+They perform two experiments, one using attendance lists in educational institutions and the other with the ORL dataset. The hardware they used was an Intel's i7 2.4 GHz 4core processor, with 64-bit Windows 10 operating system. Here is the table they show as result
+\begin{table}
+\centering
+\begin{tabular}{@{}l|cccc@{}} \toprule
+&\multicolumn{2}{c}{Training Time ($s$)}&\multicolumn{2}{c}{Recognition Time ($s$)} \\ \cmidrule(r){2-5}
+Methods&C++&Python&C++&Python\\ \cmidrule(r){1-5}
+Eigenfaces & 2.10 & 6.70 & 2.83 & 8.45\\
+Fisherfaces  & 1.07  & 4.75 &1.89 & 7.32\\
+Local Binary Pattern & 1.24 & 4.49 &1.95 &7.75\\ \bottomrule
+\end{tabular}
+\caption{Execution times for different algorithms implemented in C++ and Python}
+\label{schooltable}
+\end{table}
+
+Another example can be viewed in the article \cite{Susu2016}. The purpose of the authors is to implement a video alignment algorithm, which takes two videos recorded at different times on similar trajectories and possibly different speeds, and finds the best matching pairs of frames for those two videos. This algorithm may be used to detect changes between two different recordings. It was tested using a dataset of videos recorded while driving. They describe how they use Python to script their algorithm and then they rewrite it in C++, given that they want to achieve real time performance.
+
+The machine they used was a Ubuntu Linux 14.04 with Intel Core 2 Quad CPU Q9400 at 2.66GHz, 3MB L2 cache, 8GB RAM, with GCC 4.9.2. The reference videos, captured under controlled conditions, have a duration of 76 sec, and the query videos, recorded in order to compare with the reference, have a duration of 25.1 sec.
+
+The table \ref{videotable} present the results they obtained where they found different performance between Python and C++. It's not necessary to describe each step, but is worth mentioning that they find Python to be usually slower, except on the MSH stage, where they explained that the NumPy package they used employs a highly efficient Fortran BLAS (Basic Linear Algebra Subprograms) underneath, while standard OpenCV has only a decent implementation of linear algebra routines. For all the other steps of the process, C++ has an obvious advantage on execution times.
+
+\begin{table}
+\centering
+\begin{tabular}{@{}l|cc@{}} \toprule
+	Phase & C++ & Python \\ \cmidrule(r){1-3}
+	MSH ref. video & 450.33 & 427.25\\
+	MSH query video & 143.70 & 141.19\\
+	quads kd-tree build & 4.55 & 156.58\\
+	vote & 11.05 & 71.72\\
+	critical path matching & 0.27 & 10.06\\
+	ECC & 108.18 & 123.38\\ \bottomrule
+\end{tabular}
+\caption{Results obtain for the execution times ($s$) of different stages on a video alignment study.}
+\label{videotable}
+\end{table}
 
 
 \bibliographystyle{unsrt}

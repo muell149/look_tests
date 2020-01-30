@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/Users/uzmar.gomez/GitProjects/AlgoLookTests/tests/svd/src/demo.cpp
+iostream
+-
+opencv2/core/core.hpp
+-
+
