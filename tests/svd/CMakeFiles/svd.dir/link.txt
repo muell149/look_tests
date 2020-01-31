@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/svd.dir/src/demo.cpp.o  -o svd 

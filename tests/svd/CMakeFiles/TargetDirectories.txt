@@ -1,3 +1,0 @@
-/mnt/c/Users/uzmar.gomez/GitProjects/AlgoLookTests/tests/svd/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/uzmar.gomez/GitProjects/AlgoLookTests/tests/svd/CMakeFiles/svd.dir
-/mnt/c/Users/uzmar.gomez/GitProjects/AlgoLookTests/tests/svd/CMakeFiles/edit_cache.dir
