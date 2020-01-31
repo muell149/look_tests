@@ -8,4 +8,4 @@ Run the following commands to build and get the docker container run
 
 `docker build -t app:v1 .`
 
-`docker run -i -t IMAGE_ID /bin/bash`
+`docker run -i -t app:v1 /bin/bash`
