@@ -22,10 +22,24 @@ RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D INSTALL_PYTHON_EXAMPLES=ON \
     -D OPENCV_EXTRA_MODULES_PATH=~/opencv_build/opencv_contrib/modules \
     -D BUILD_EXAMPLES=ON ..
-RUN make -j4
+RUN make -j1
 RUN make install
 
 #**************** Install Libtorch ******************
+RUN mkdir ~/pytorch_build
+WORKDIR /root/pytorch_build
+RUN git clone --verbose https://github.com/pytorch/pytorch.git
+WORKDIR /root/pytorch_build/pytorch
+RUN git checkout v1.1.0
+RUN mkdir build
+WORKDIR /root/pytorch_build/pytorch/build
+RUN apt-get install python-pip -y
+RUN apt-get install python3-pip -y
+RUN pip install pyyaml typing
+RUN pip3 install pyyaml typing
+RUN cmake ..
+RUN make -j1
+RUN make install
 
 WORKDIR /app
 
