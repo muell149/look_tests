@@ -9,38 +9,38 @@ RUN apt-get install -y build-essential cmake git pkg-config libgtk-3-dev libavco
     libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev \
     libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev python3-dev \
     python3-numpy libtbb2 libtbb-dev libdc1394-22-dev
-RUN mkdir ~/opencv_build
-WORKDIR /root/opencv_build
-RUN git clone --verbose https://github.com/opencv/opencv.git
-RUN git clone --verbose https://github.com/opencv/opencv_contrib.git
-WORKDIR /root/opencv_build/opencv
-RUN mkdir build
-WORKDIR /root/opencv_build/opencv/build
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
-    -D CMAKE_INSTALL_PREFIX=/usr/local \
-    -D INSTALL_C_EXAMPLES=ON \
-    -D INSTALL_PYTHON_EXAMPLES=ON \
-    -D OPENCV_EXTRA_MODULES_PATH=~/opencv_build/opencv_contrib/modules \
-    -D BUILD_EXAMPLES=ON ..
-RUN make -j1
-RUN make install
+# RUN mkdir ~/opencv_build
+# WORKDIR /root/opencv_build
+# RUN git clone --verbose https://github.com/opencv/opencv.git
+# RUN git clone --verbose https://github.com/opencv/opencv_contrib.git
+# WORKDIR /root/opencv_build/opencv
+# RUN mkdir build
+# WORKDIR /root/opencv_build/opencv/build
+# RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
+#     -D CMAKE_INSTALL_PREFIX=/usr/local \
+#     -D INSTALL_C_EXAMPLES=ON \
+#     -D INSTALL_PYTHON_EXAMPLES=ON \
+#     -D OPENCV_EXTRA_MODULES_PATH=~/opencv_build/opencv_contrib/modules \
+#     -D BUILD_EXAMPLES=ON ..
+# RUN make -j4
+# RUN make install
 
-#**************** Install Libtorch ******************
-RUN mkdir ~/pytorch_build
-WORKDIR /root/pytorch_build
-RUN git clone --verbose https://github.com/pytorch/pytorch.git
-WORKDIR /root/pytorch_build/pytorch
-RUN git checkout v1.1.0
+#**************** Install TensorFlow ******************
+RUN mkdir ~/tensorflow_build
+WORKDIR /root/tensorflow_build
+RUN git clone https://github.com/leggedrobotics/tensorflow-cpp.git
+WORKDIR /root/tensorflow_build/tensorflow-cpp/eigen
 RUN mkdir build
-WORKDIR /root/pytorch_build/pytorch/build
-RUN apt-get install python-pip -y
-RUN apt-get install python3-pip -y
-RUN pip install pyyaml typing
-RUN pip3 install pyyaml typing
-RUN cmake ..
-RUN make -j1
-RUN make install
+WORKDIR /root/tensorflow_build/tensorflow-cpp/eigen/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=~/.local -DCMAKE_BUILD_TYPE=Release ..
+RUN make install -j
+WORKDIR /root/tensorflow_build/tensorflow-cpp/tensorflow
+RUN mkdir build
+WORKDIR /root/tensorflow_build/tensorflow-cpp/tensorflow/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=~/.local -DCMAKE_BUILD_TYPE=Release ..
+RUN make install -j
 
 WORKDIR /app
 
 ADD . /app
+
