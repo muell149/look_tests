@@ -27,6 +27,7 @@ RUN make install
 
 WORKDIR /app
 
+RUN apt-get install wget -y
 RUN wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
 RUN unzip *.zip
 

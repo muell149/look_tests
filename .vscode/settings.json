@@ -42,5 +42,6 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "chrono": "cpp"
-    }
+    },
+    "python.pythonPath": "/usr/bin/python3"
 }
