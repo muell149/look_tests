@@ -33,7 +33,14 @@ First, we have the training data $X=\{x_1,x_2,\dots,x_q\}$ and the testing data 
 
         As you can see, the variables we are looking are $W_{Z_i}$ and $E_i$, in order to find the best $Z_i$ and $L_i$. The other components can be found by conducting a skinny SVD of $M_i=U_{M_i}\Sigma_{M_i} V^T_{M_i}$ to find $U_{M_i}$ and $V_{M_i}$. The meaning of skinny is that $\Sigma_{M_i}$ is a square matrix of size $\text{rank}(M_i)$.
 
-        This is a kind of optimization problem called convex optimization problem (you can read more about it in the following <cite>[link][2]</cite>), where $||Z_i||_{*} + \lambda ||M_i-M_i Z_i||_F^2$ is called the "objective function", there are no inequality constraints and there are four equality constraint functions. 
+        This is a kind of optimization problem called convex optimization problem (you can read more about it in the following <cite>[link][2]</cite>), where $||Z_i||_{*} + \lambda ||M_i-M_i Z_i||_F^2$ is called the "objective function", there are no inequality constraints and there are four equality constraint functions. It is called convex because the objective and constraint functions satisfy 
+
+
+        $$f(\alpha \vec{x}+\beta\vec{y})\leq \alpha f(\vec{x})+\beta f(\vec{y})$$
+
+        for all $\vec{x},\vec{y}\in R^n$, and all $\alpha,\beta\in R$, with $\alpha + \beta = 1$, $\alpha\geq 0$, $\beta \geq 0$.
+        
+        Every norm satisfies this inequality.
 
         There are different approaches to solve this kind of problems, and there is a Python library created called <cite>[CVXOPT][3]</cite>.
     * Having got the optimal $L_i$, calculate the discriminative information of face image by $L_iM_i$.
