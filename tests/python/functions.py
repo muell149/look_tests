@@ -1,5 +1,12 @@
 import numpy as np
 
+
+def dynamic_rank_representation(A, B, C):
+   '''
+   Solves the following optimization problem
+   '''
+   return 0
+
 def low_rank_approx(A, r=1):
    '''
    Computes an r-rank approximation of a matrix A (m x n)
@@ -45,9 +52,3 @@ def skinny_SVD(A):
    v = v_aux[0:r,:]
 
    return u,s,v
-
-def dynamic_rank_representation(A,lamda=-1):
-   '''
-   Optimization problem
-   '''
-   return 0
