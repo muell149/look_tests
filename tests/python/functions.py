@@ -27,7 +27,7 @@ def low_rank_approx(A, r=1):
 def skinny_SVD(A):
    '''
    For a matrix A of rank r, its skinny SVD is computed by 
-   M = U_r S_r V^T_r, where S_r = diag(s_1,s_2,...,s_r) with
+   A = U_r S_r V^T_r, where S_r = diag(s_1,s_2,...,s_r) with
    s_i being positive singular values
 
    '''
