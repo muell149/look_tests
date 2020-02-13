@@ -1,5 +1,6 @@
 from cvxopt import matrix, spmatrix, normal, setseed, blas, lapack, solvers
 import nucnrm
+import matplotlib.pyplot as plt
 
 # Solves a randomly generated nuclear norm minimization problem 
 #
@@ -13,17 +14,16 @@ p, q, n = 100, 100, 100
 A = normal(p*q, n)
 B = normal(p, q)
 
-
 # options['feastol'] = 1e-6
 # options['refinement'] = 3
 
 sol = nucnrm.nrmapp(A, B)
-
+print("hola")
 x = sol['x']
 Z = sol['Z']
 
 s = matrix(0.0, (p,1))
-X = matrix(A *x, (p, q)) + B
+X = matrix(A*x, (p, q)) + B
 lapack.gesvd(+X, s)
 nrmX = sum(s)
 lapack.gesvd(+Z, s)

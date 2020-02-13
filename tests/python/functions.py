@@ -1,11 +1,58 @@
 import numpy as np
+import cvxopt as cx
 
-
-def dynamic_rank_representation(A, B, C):
+def optimization(M):
    '''
+   
    Solves the following optimization problem
+   
+       min      || Z ||_*  +  lambda || M - MZ ||_{F}^2
+      Z,L,E
+      
+      
+      subject to: 
+      
+      M = MZ + LM + E
+      
+      where
+      
+      M =         U_{M} S_{M} V^T_{M} is the Skinny SVD of M
+      Z =         V_{M} W_{Z} V^T_{M}
+      L =         U_{M} ( I - W_{Z} ) U_{M}^T
+      rank(Z) =   r
+   
+      ||.||_*   is called the nuclear norm
+      ||.||_F   is called the frobenius norm
+   
    '''
-   return 0
+   
+   U_aux, S_aux, V_aux = skinny_SVD(M) 
+   
+   U = cx.matrix(U_aux)
+   S = cx.matrix(S_aux)
+   V = cx.matrix(V_aux)
+   
+   
+   return U
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def low_rank_approx(A, r=1):
    '''

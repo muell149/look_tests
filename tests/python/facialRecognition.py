@@ -16,7 +16,9 @@ n_samples, h, w = lfw_dataset.images.shape
 
 A = np.matrix([[2,3,1],[6,9,3],[10,15,3]])
 
-print(np.linalg.norm(A,'nuc'))
+print(fn.optimization(A))
+
+# print(np.linalg.norm(A,'nuc'))
 
 #********************************************************************
 
