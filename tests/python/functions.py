@@ -1,5 +1,5 @@
 import numpy as np
-import cvxopt as cx
+import cvxpy as cp
 
 def optimization(M):
    '''
@@ -26,33 +26,65 @@ def optimization(M):
    
    '''
    
-   U_aux, S_aux, V_aux = skinny_SVD(M) 
+   # First, get the skinny SVD of M in order to obtain U and V
    
-   U = cx.matrix(U_aux)
-   S = cx.matrix(S_aux)
-   V = cx.matrix(V_aux)
+   U, S, V = skinny_SVD(M) 
    
+   #***************** Problem construction ****************
    
-   return U
+   # Parameter lambda
+   
+   lamb = 1.0
+   
+   # Define variables
+   mr, mc = M.shape
+   ur, uc = U.shape
+   vr, vc = V.shape
+   
+   W = cp.Variable((vr,vc)) 
+   E = cp.Variable((mr,mc)) 
+   
+   # Objective function definition
+   
+   objective = cp.Minimize( cp.norm(V*W*V.T, "nuc") 
+                           + lamb * (cp.norm(M-M*V*W*V.T, 'fro')) **2.0 )
+   
+   # Constraint definition
+   
+   constraints = [ M == M*V*W*V.T + U*(np.identity(vr) - W)*U.T*M + E] # <- Rank constraint is missing
 
+   # Solve problem using cvxpy
+    
+   prob = cp.Problem(objective,constraints)
+   
+   prob.solve()
+   
+   L = U*(np.identity(W.value.shape[0])-W.value)*U.T
+   
+   return L
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def identify(y,vec_M,vec_L):
+   '''
+   kNN definition of distance to a class
+   
+   Input
+   
+   y:       Flattened image to be classified
+   vec_M:   Vector of the M's matrices that define a class
+   vec_L:   Vector of the L's matrices that define a class
+   
+   Output
+   
+   An index that defines the class to which the image y belongs
+   
+   '''
+   
+   e = np.empty(len(vec_M))
+   
+   for i in range(len(vec_M)):
+      e[i] = (np.linalg.norm(vec_L[i]*y-vec_L[i]*vec_M[i],2))**2
+   
+   return np.argmin(e)
 
 def low_rank_approx(A, r=1):
    '''

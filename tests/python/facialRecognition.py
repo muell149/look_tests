@@ -14,7 +14,9 @@ lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False)
 
 n_samples, h, w = lfw_dataset.images.shape
 
-A = np.matrix([[2,3,1],[6,9,3],[10,15,3]])
+A = np.matrix([[2,3,1,1,2],[6,9,3,1,5],[10,15,3,1,0],[1,0,2,1,3],[1,0,2,9,1],[0,5,2,5,1]])
+
+r = 3
 
 print(fn.optimization(A))
 
