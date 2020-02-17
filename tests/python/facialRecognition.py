@@ -58,20 +58,21 @@ Start making the algorithm.
 M_class = []
 L_class = []
 
-print("Almost...")
-sys.exit()
+# print("Almost...")
+# sys.exit()
 
 # Iteration over the different classes (or persons)
 for matrix in A:
    
    # Get low rank approximation
-   M = fn.low_rank_approx(matrix)#<-Problem with rank
-
+   M = fn.low_rank_approx(matrix,rank)
+   print("finish")
    # Optimization part
    L = fn.optimization(M)
 
    M_class.append(M)
    L_class.append(M)
+
 
 '''
 Identification
