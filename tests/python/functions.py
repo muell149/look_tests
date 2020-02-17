@@ -3,7 +3,6 @@ import cvxpy as cp
 
 def optimization(M):
    '''
-   
    Solves the following optimization problem
    
        min      || Z ||_*  +  lambda || M - MZ ||_{F}^2
@@ -23,7 +22,6 @@ def optimization(M):
    
       ||.||_*   is called the nuclear norm
       ||.||_F   is called the frobenius norm
-   
    '''
    
    # First, get the skinny SVD of M in order to obtain U and V
@@ -76,7 +74,6 @@ def identify(y,vec_M,vec_L):
    Output
    
    An index that defines the class to which the image y belongs
-   
    '''
    
    e = np.empty(len(vec_M))
@@ -95,7 +92,6 @@ def low_rank_approx(A, r=1):
 
    The columns of U and columns of V are the left and right singular
    vectors, respectively.
-
    '''
 
    u, s, v = np.linalg.svd(A, full_matrices=False)
@@ -115,7 +111,6 @@ def skinny_SVD(A):
    For a matrix A of rank r, its skinny SVD is computed by 
    A = U_r S_r V^T_r, where S_r = diag(s_1,s_2,...,s_r) with
    s_i being positive singular values
-
    '''
    # Get SVD of A
    u_aux, s_aux, v_aux = np.linalg.svd(A,full_matrices=False)

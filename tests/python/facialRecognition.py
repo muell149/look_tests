@@ -1,54 +1,82 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_lfw_people
 import scipy.misc
 import functions as fn
+import sys
 
 '''
 Load data from Labeled Faces in the Wild. We will only use
 persons with at least 100 images of their face.
-
 '''
 
 lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False)
 
+# Shape and number of samples
 n_samples, h, w = lfw_dataset.images.shape
 
-A = np.matrix([[2,3,1,1,2],[6,9,3,1,5],[10,15,3,1,0],[1,0,2,1,3],[1,0,2,9,1],[0,5,2,5,1]])
+# Vector with components as the flattened vectors with the images
+images = lfw_dataset.data
 
-r = 3
+# Id of each image
+ordered_id = lfw_dataset.target
 
-print(fn.optimization(A))
+# Names of the person in each image
+target_names = lfw_dataset.target_names
 
-# print(np.linalg.norm(A,'nuc'))
+# Split into a training and testing set
+x_train, x_test, y_train, y_test = train_test_split(
+    images, ordered_id, test_size=0.25, random_state=42)
 
-#********************************************************************
 
-# A = lfw_dataset.images[0]
+'''
+Make a matrix for each class (or person). Each row will be a 
+different image of the same person.
+'''
+# Vector of matrices
+A = []
 
-# M = fn.low_rank_approx(A, r=2)
+for id_number in range(len(target_names)):
+   mat_images_person = [] 
+   for i in range(len(y_train)):
+      if y_train[i]==id_number:
+         mat_images_person.append(x_train[i])
+   A.append(np.asmatrix(mat_images_person))
 
-# plt.figure(1)
-# f, ax = plt.subplots(1,2)
 
-# ax[0].imshow(A)
-# ax[1].imshow(M)
-# plt.show()
+'''
+Set the rank as in the article
+'''
+rank = 0.2 * h * w
 
-#********************************************************************
 
-# set_person_images = []
+'''
+Start making the algorithm.
+'''
+M_class = []
+L_class = []
 
-# for i in range(len(lfw_dataset.target)):
-#    if lfw_dataset.target[i] == 3:
-#       set_person_images.append(lfw_dataset.images[i].reshape(1,h*w)[0])
-      
-# A = np.matrix(set_person_images)
+print("Almost...")
+sys.exit()
 
-#*************************************************************
-# Plotting an image that's inside the matrix
+# Iteration over the different classes (or persons)
+for matrix in A:
+   
+   # Get low rank approximation
+   M = fn.low_rank_approx(matrix)#<-Problem with rank
 
-# plt.imshow(A[2][:].reshape(h,w))
-# plt.show()
+   # Optimization part
+   L = fn.optimization(M)
 
-#********************************************************************
+   M_class.append(M)
+   L_class.append(M)
+
+'''
+Identification
+'''
+print("An image labeled with the index ", y_test[1], "has been identified with the index ", identify(x_test,vec_M,vec_L))   
+
+   
+   
+   
