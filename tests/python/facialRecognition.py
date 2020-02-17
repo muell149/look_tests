@@ -12,11 +12,11 @@ Load data from Labeled Faces in the Wild. We will only use
 persons with at least 100 images of their face.
 '''
 
-lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False)
+lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False, resize=.16)
 
 # Shape and number of samples
 n_samples, h, w = lfw_dataset.images.shape
-
+print(h,w)
 # Vector with components as the flattened vectors with the images
 images = lfw_dataset.data
 
