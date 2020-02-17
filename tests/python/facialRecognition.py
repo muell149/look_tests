@@ -5,6 +5,7 @@ from sklearn.datasets import fetch_lfw_people
 import scipy.misc
 import functions as fn
 import sys
+import random
 
 '''
 Load data from Labeled Faces in the Wild. We will only use
@@ -75,7 +76,9 @@ for matrix in A:
 '''
 Identification
 '''
-print("An image labeled with the index ", y_test[1], "has been identified with the index ", identify(x_test,vec_M,vec_L))   
+
+for index in random.sample(range(0, len(y_test)), 5):
+   print("An image labeled with the index ", y_test[index], "has been identified with the index ", identify(x_test[index],vec_M,vec_L))   
 
    
    
