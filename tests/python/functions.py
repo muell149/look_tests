@@ -1,5 +1,6 @@
 import numpy as np
 import cvxpy as cp
+import sys
 
 def optimization(M):
    '''
@@ -25,9 +26,11 @@ def optimization(M):
    '''
    
    # First, get the skinny SVD of M in order to obtain U and V
-   
+   print("Starting optimization")
+   print("  Getting Skinny SVD...")
    U, S, V = skinny_SVD(M) 
-   
+   print("  Got Skinny SVD")
+
    #***************** Problem construction ****************
    
    # Parameter lambda
@@ -39,23 +42,25 @@ def optimization(M):
    ur, uc = U.shape
    vr, vc = V.shape
    
-   W = cp.Variable((vr,vc)) 
+   W = cp.Variable((vc,vc)) 
    E = cp.Variable((mr,mc)) 
    
    # Objective function definition
-   
+   print("  Defining objective function")
    objective = cp.Minimize( cp.norm(V*W*V.T, "nuc") 
                            + lamb * (cp.norm(M-M*V*W*V.T, 'fro')) **2.0 )
    
    # Constraint definition
-   
-   constraints = [ M == M*V*W*V.T + U*(np.identity(vr) - W)*U.T*M + E] # <- Rank constraint is missing
+   print("  Define constraint")
+   constraints = [ M == M*V*W*V.T + U*(np.identity(vc) - W)*U.T*M + E] # <- Rank constraint is missing
 
    # Solve problem using cvxpy
-    
-   prob = cp.Problem(objective,constraints)
    
+   print("  Define problem to solve")
+   prob = cp.Problem(objective,constraints)
+
    prob.solve()
+   print("  Problem solved")
    
    L = U*(np.identity(W.value.shape[0])-W.value)*U.T
    
@@ -79,7 +84,11 @@ def identify(y,vec_M,vec_L):
    e = np.empty(len(vec_M))
    
    for i in range(len(vec_M)):
-      e[i] = (np.linalg.norm(vec_L[i]*y-vec_L[i]*vec_M[i],2))**2
+      print(vec_L[i].T.shape)
+      print((vec_L[i].T*vec_M[i]).shape)
+      print(y.shape)
+      print(vec_M[i].shape)
+      e[i] = (np.linalg.norm(vec_L[i].T*y-vec_L[i].T*vec_M[i],2))**2
    
    return np.argmin(e)
 
@@ -124,5 +133,5 @@ def skinny_SVD(A):
    s = s_aux[:r]
    u = u_aux[:,0:r]
    v = v_aux[0:r,:]
-
-   return u,s,v
+   
+   return u,s,v.T

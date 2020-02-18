@@ -16,7 +16,7 @@ lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False, resize=.16)
 
 # Shape and number of samples
 n_samples, h, w = lfw_dataset.images.shape
-print(h,w)
+
 # Vector with components as the flattened vectors with the images
 images = lfw_dataset.data
 
@@ -40,16 +40,19 @@ A = []
 
 for id_number in range(len(target_names)):
    mat_images_person = [] 
-   for i in range(len(y_train)):
+   for i in range(100):
       if y_train[i]==id_number:
          mat_images_person.append(x_train[i])
-   A.append(np.asmatrix(mat_images_person))
-
+   A.append(np.asmatrix(mat_images_person).T)
+   
+print(" ")
+print("Got matrix that contains info from each class")
+print(" ")
 
 '''
 Set the rank as in the article
 '''
-rank = 0.2 * h * w
+rank = 6
 
 
 '''
@@ -58,28 +61,36 @@ Start making the algorithm.
 M_class = []
 L_class = []
 
-# print("Almost...")
-# sys.exit()
 
 # Iteration over the different classes (or persons)
 for matrix in A:
-   
+   print("*"*5," Start algorithm for",target_names[A.index(matrix)],"class ","*"*5,)
+   print(" ")
+   print("Getting clean information matrix...")
+
    # Get low rank approximation
    M = fn.low_rank_approx(matrix,rank)
-   print("finish")
+
+   print("Got clean information")
+   
    # Optimization part
    L = fn.optimization(M)
-
+   
+   
    M_class.append(M)
    L_class.append(M)
 
+print(" ")
+print("Vectors M and L obtained")
 
 '''
 Identification
 '''
 
+print("Starting identification")
 for index in random.sample(range(0, len(y_test)), 5):
-   print("An image labeled with the index ", y_test[index], "has been identified with the index ", identify(x_test[index],vec_M,vec_L))   
+   print("An image labeled with the index ", y_test[index], 
+         "has been identified with the index ", fn.identify(x_test[index],M_class,L_class))   
 
    
    
