@@ -14,7 +14,7 @@ ADD lfw.py /
 RUN python3 /lfw.py
 RUN mkdir app
 
-ADD facialRecognition.py /app
+ADD faceRecognition.py /app
 ADD functions.py /app
 
 WORKDIR /app
