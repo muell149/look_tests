@@ -40,7 +40,7 @@ A = []
 
 for id_number in range(len(target_names)):
    mat_images_person = [] 
-   for i in range(100):
+   for i in range(200):
       if y_train[i]==id_number:
          mat_images_person.append(x_train[i])
    A.append(np.asmatrix(mat_images_person).T)
@@ -52,7 +52,7 @@ print(" ")
 '''
 Set the rank as in the article
 '''
-rank = 6
+rank = 16   
 
 
 '''
@@ -61,15 +61,16 @@ Start making the algorithm.
 M_class = []
 L_class = []
 
-
 # Iteration over the different classes (or persons)
-for matrix in A:
-   print("*"*5," Start algorithm for",target_names[A.index(matrix)],"class ","*"*5,)
+for index in range(len(A)-1):
+   print(" ")
+   print(" ")
+   print("*"*5," Start algorithm for",target_names[index],"class ","*"*5)
    print(" ")
    print("Getting clean information matrix...")
 
    # Get low rank approximation
-   M = fn.low_rank_approx(matrix,rank)
+   M = fn.low_rank_approx(A[index],rank)
 
    print("Got clean information")
    
@@ -82,15 +83,16 @@ for matrix in A:
 
 print(" ")
 print("Vectors M and L obtained")
-
+print(" ")
+print(" ")
 '''
 Identification
 '''
 
 print("Starting identification")
 for index in random.sample(range(0, len(y_test)), 5):
-   print("An image labeled with the index ", y_test[index], 
-         "has been identified with the index ", fn.identify(x_test[index],M_class,L_class))   
+   print("An image of  ", target_names[y_test[index]], 
+         "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])   
 
    
    

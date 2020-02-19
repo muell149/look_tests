@@ -84,11 +84,7 @@ def identify(y,vec_M,vec_L):
    e = np.empty(len(vec_M))
    
    for i in range(len(vec_M)):
-      print(vec_L[i].T.shape)
-      print((vec_L[i].T*vec_M[i]).shape)
-      print(y.shape)
-      print(vec_M[i].shape)
-      e[i] = (np.linalg.norm(vec_L[i].T*y-vec_L[i].T*vec_M[i],2))**2
+      e[i] = (np.linalg.norm(vec_L[i].getH()*np.asmatrix(y).T-vec_L[i].getH()*vec_M[i],2))**2
    
    return np.argmin(e)
 
