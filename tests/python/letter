@@ -1,0 +1,30 @@
+Dear Drs. Li and Shuen,
+
+I hope you are well. Let me introduce myself, I'm Uzmar Gómez, a former physics student of the Faculty of Science, at the National Autonomous University of Mexico. 
+
+I write this email because I was reading your paper entitled "Robust face recognition based on dynamic rank representation", mainly because I'm currently doing a project on Face Recognition and, seeing the amazing results you got with this approach, I am trying to replicate them.
+
+The problem is that I don't quite understand some of the steps of the algorithm, and I was wondering if you could help me. I apologize in advance if my questions seem trivial to you, but believe me, I have been trying to understand for quite some time, and I think I really need your help. I will describe what I figure and, if it happens that I'm somehow incorrect, please let me know. The issues I have concern the section 3.7 "The proposed algorithm":
+
+I understand the training data $X$ and testing data $Y$ as matrices where the columns are multiple images of multiple people all together, so for example, if all the training images have each a size of $S_1\times S_2=m$ (for example, $20\times 15$ as you mention on the 3.4 section), and the total number of training images are $t$, then the matrix $X$ will have the shape $(m, t)$.
+
+How did you choose the regularization parameter $\lambda$? You mentioned that it depends on quantities which in practice are not known beforehand so, is it choosen by trial and error?
+
+Then, you mention a matrix of training samples $D=[D_1, D_2, ..., D_k] \in R^{m\times n}$, does this mean that $D_i\in R^{m\times n} \forall i$? This will mean that $D_i$ represents the matrix made by all $n$ images in one class (i.e. all the images of person "i"). Does this means that $D==X$?
+
+For the dynamic rank estimation, you found that this rank $r$ is proportional to the image size $r\approx \rho \times S_1\times S_2$, so if the size of each image is $S_1 \times S_2$ ($20 \times 15$ pixels), does the rank you obtained with a $\rho=0.2$ is 60? Do I have to solve the optimization problem given in eq. 8 in order to get the rank? Or is it enough to suppose it's proportional to the image size?
+
+Also for the second step "for each subject i do", is this a "for" loop on the class (i.e. on the number of persons)?
+
+For the third step, is the SVD made for the different $D_i$'s? 
+
+Is the low-rank approximation (which in this case will be $M_i$) of $D_i$ obtain with the rank we got on the "dynamic rank estimation" step ($r=60$)?
+
+In order to solve the optimization problem (Eq. 11 of your article), are we looking to find $W_{Z_i}$ and $E_i$ in order to find the best $Z_i$ and $L_i$? As I understand, the components $U_{M_i}$ and $V_{M_i}$ can be found by conducting a skinny SVD of $M_i=U_{M_i}\Sigma_{M_i} V^T_{M_i}$.
+
+I know these are a lot of questions, but I will be really grateful if you could answer them when you have the time, or at least give me some hints. Also, if you decide not to do it, please let me know, so that I do not keep waiting for an answer. 
+
+I thank you so much in advance.
+
+Best regards,
+Uzmar.

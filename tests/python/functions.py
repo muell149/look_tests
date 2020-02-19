@@ -34,8 +34,7 @@ def optimization(M):
    #***************** Problem construction ****************
    
    # Parameter lambda
-   
-   lamb = 1.0
+   lamb = 0.2
    
    # Define variables
    mr, mc = M.shape

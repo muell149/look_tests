@@ -52,7 +52,8 @@ print(" ")
 '''
 Set the rank as in the article
 '''
-rank = 16   
+rho = 0.03
+rank = rho * h * w   
 
 
 '''
@@ -90,10 +91,12 @@ Identification
 '''
 
 print("Starting identification")
-for index in random.sample(range(0, len(y_test)), 5):
-   print("An image of  ", target_names[y_test[index]], 
-         "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])   
+n=200
+i=0
+for index in random.sample(range(0, len(y_test)), n):
+   # print("An image of  ", target_names[y_test[index]], 
+   #       "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])
+   if target_names[y_test[index]]==target_names[fn.identify(x_test[index],M_class,L_class)]:
+      i = i+1
 
-   
-   
-   
+print("Percentage of accuracy: ", i*100/n,"%")
