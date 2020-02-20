@@ -6,6 +6,7 @@ import scipy.misc
 import functions as fn
 import sys
 import random
+import timeit
 
 '''
 Load data from Labeled Faces in the Wild. We will only use
@@ -33,11 +34,11 @@ x_train, x_test, y_train, y_test = train_test_split(
 '''
 Set variables
 '''
-rho = 0.06
+rho = 0.09
 rank = rho * h * w
-number_images_per_person = 20
-lamb = 0.5
-number_person_testing=200
+number_images_per_person = 30
+lamb = 0.9
+number_person_testing=250
 
 '''
 Make a matrix for each class (or person). Each row will be a 
@@ -93,11 +94,16 @@ Identification
 '''
 
 print("Starting identification")
-i=0
-for index in random.sample(range(0, len(y_test)), number_person_testing):
-   # print("An image of  ", target_names[y_test[index]], 
-   #       "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])
-   if target_names[y_test[index]]==target_names[fn.identify(x_test[index],M_class,L_class)]:
-      i = i+1
-
-print("Percentage of accuracy: ", i*100/number_person_testing,"%")
+def testing_accuracy():
+   
+   i=0
+   for index in random.sample(range(0, len(y_test)), number_person_testing):
+      # print("An image of  ", target_names[y_test[index]], 
+      #       "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])
+      if target_names[y_test[index]]==target_names[fn.identify(x_test[index],M_class,L_class)]:
+         i = i+1
+         
+   print("Percentage of accuracy:", i*100/number_person_testing,"%")
+   
+elapsed_time = timeit.timeit(testing_accuracy,number=1)
+print("Elapsed time to identify",number_person_testing, "people is: ", elapsed_time,"s")
