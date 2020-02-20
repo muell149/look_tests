@@ -2,7 +2,7 @@ import numpy as np
 import cvxpy as cp
 import sys
 
-def optimization(M):
+def optimization(M, lamb):
    '''
    Solves the following optimization problem
    
@@ -32,9 +32,6 @@ def optimization(M):
    print("  Got Skinny SVD")
 
    #***************** Problem construction ****************
-   
-   # Parameter lambda
-   lamb = 0.2
    
    # Define variables
    mr, mc = M.shape

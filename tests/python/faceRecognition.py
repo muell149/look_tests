@@ -12,7 +12,7 @@ Load data from Labeled Faces in the Wild. We will only use
 persons with at least 100 images of their face.
 '''
 
-lfw_dataset = fetch_lfw_people(min_faces_per_person=100,color=False, resize=.16)
+lfw_dataset = fetch_lfw_people(min_faces_per_person=50,color=False, resize=.16)
 
 # Shape and number of samples
 n_samples, h, w = lfw_dataset.images.shape
@@ -30,6 +30,14 @@ target_names = lfw_dataset.target_names
 x_train, x_test, y_train, y_test = train_test_split(
     images, ordered_id, test_size=0.25, random_state=42)
 
+'''
+Set variables
+'''
+rho = 0.06
+rank = rho * h * w
+number_images_per_person = 20
+lamb = 0.5
+number_person_testing=200
 
 '''
 Make a matrix for each class (or person). Each row will be a 
@@ -40,21 +48,15 @@ A = []
 
 for id_number in range(len(target_names)):
    mat_images_person = [] 
-   for i in range(200):
+   for i in range(len(y_train)):
       if y_train[i]==id_number:
          mat_images_person.append(x_train[i])
+   mat_images_person = mat_images_person[:number_images_per_person]
    A.append(np.asmatrix(mat_images_person).T)
    
 print(" ")
 print("Got matrix that contains info from each class")
 print(" ")
-
-'''
-Set the rank as in the article
-'''
-rho = 0.03
-rank = rho * h * w   
-
 
 '''
 Start making the algorithm.
@@ -76,7 +78,7 @@ for index in range(len(A)-1):
    print("Got clean information")
    
    # Optimization part
-   L = fn.optimization(M)
+   L = fn.optimization(M,lamb)
    
    
    M_class.append(M)
@@ -91,12 +93,11 @@ Identification
 '''
 
 print("Starting identification")
-n=200
 i=0
-for index in random.sample(range(0, len(y_test)), n):
+for index in random.sample(range(0, len(y_test)), number_person_testing):
    # print("An image of  ", target_names[y_test[index]], 
    #       "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])
    if target_names[y_test[index]]==target_names[fn.identify(x_test[index],M_class,L_class)]:
       i = i+1
 
-print("Percentage of accuracy: ", i*100/n,"%")
+print("Percentage of accuracy: ", i*100/number_person_testing,"%")
