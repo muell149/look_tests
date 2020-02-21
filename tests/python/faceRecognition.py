@@ -34,10 +34,10 @@ x_train, x_test, y_train, y_test = train_test_split(
 '''
 Set variables
 '''
-rho = 0.09
+rho = 0.02
 rank = rho * h * w
 number_images_per_person = 30
-lamb = 0.9
+lamb = .05
 number_person_testing=250
 
 '''
@@ -51,7 +51,7 @@ for id_number in range(len(target_names)):
    mat_images_person = [] 
    for i in range(len(y_train)):
       if y_train[i]==id_number:
-         mat_images_person.append(x_train[i])
+         mat_images_person.append(x_train[i]/255)
    mat_images_person = mat_images_person[:number_images_per_person]
    A.append(np.asmatrix(mat_images_person).T)
    
@@ -67,9 +67,13 @@ L_class = []
 
 # Iteration over the different classes (or persons)
 for index in range(len(A)-1):
+   t = len(target_names[index])
    print(" ")
    print(" ")
-   print("*"*5," Start algorithm for",target_names[index],"class ","*"*5)
+   print(" ")
+   print("*"*(int((47-t)/2))," Start Algorithm for",target_names[index],"Class ","*"*(int((47-t)/2)))
+   print(" ")
+   print("Class ",index+1,"/",len(A),sep='')
    print(" ")
    print("Getting clean information matrix...")
 

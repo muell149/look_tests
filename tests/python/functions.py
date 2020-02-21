@@ -28,15 +28,15 @@ def optimization(M, lamb):
    # First, get the skinny SVD of M in order to obtain U and V
    print("Starting optimization")
    print("  Getting Skinny SVD...")
-   U, S, V = skinny_SVD(M) 
+   U, _, V = skinny_SVD(M) 
    print("  Got Skinny SVD")
 
    #***************** Problem construction ****************
    
    # Define variables
    mr, mc = M.shape
-   ur, uc = U.shape
-   vr, vc = V.shape
+   _ , _ = U.shape
+   _, vc = V.shape
    
    W = cp.Variable((vc,vc)) 
    E = cp.Variable((mr,mc)) 
@@ -55,8 +55,9 @@ def optimization(M, lamb):
    print("  Define problem to solve")
    prob = cp.Problem(objective,constraints)
 
-   prob.solve()
-   print("  Problem solved")
+   prob.solve(verbose=True)
+   print("="*30,"Problem solved","="*30)
+   print("="*76)
    
    L = U*(np.identity(W.value.shape[0])-W.value)*U.T
    
