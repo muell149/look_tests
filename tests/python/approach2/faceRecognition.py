@@ -14,7 +14,7 @@ Load data from Labeled Faces in the Wild. We will only use
 persons with at least 100 images of their face.
 '''
 
-lfw_dataset = fetch_lfw_people(min_faces_per_person=30,color=False, resize=.16)
+lfw_dataset = fetch_lfw_people(min_faces_per_person=50,color=False, resize=.3)
 
 # Shape and number of samples
 _, h, w = lfw_dataset.images.shape
@@ -35,6 +35,7 @@ x_train, x_test, y_train, y_test = train_test_split(
 number_classes=len(target_names)
 print("Number of people =",number_classes)
 
+sys.exit()
 '''
 Set variables
 '''
