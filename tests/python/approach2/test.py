@@ -1,6 +1,9 @@
-from sklearn.preprocessing import normalize
-import numpy
-
-lista = [0,1,2,3,4,5]
-
-print(lista[:4])
+import timeit
+code_to_test = """
+a = range(100000)
+b = []
+for i in a:
+   b.append(i*2)
+"""
+elapsed_time = timeit.timeit(code_to_test, number=100)/100
+print(elapsed_time)

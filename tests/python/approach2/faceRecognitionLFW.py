@@ -33,15 +33,13 @@ x_train, x_test, y_train, y_test = train_test_split(
     images, ordered_id, test_size=0.25, random_state=42)
 
 number_classes=len(target_names)
-print("Number of people =",number_classes)
 
-sys.exit()
 '''
 Set variables
 '''
 images_per_class = 13
 number_person_testing=100
-epsilon=.05
+epsilon=.01
 
 '''
 Make a matrix with the images from all classes
@@ -74,7 +72,7 @@ def testing_accuracy():
    for index in random.sample(range(0, len(y_test)), number_person_testing):
       
       Y=np.asmatrix(x_test[index]).T
-      X=fn.optimization(A,Y,epsilon)
+      X=fn.optimization(A_norm,Y,epsilon)
       r = []
       for class_index in range(1,number_classes+1):
          X_g = fn.deltafunction(class_index,images_per_class,number_classes,X)
