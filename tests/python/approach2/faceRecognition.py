@@ -13,6 +13,8 @@ import timeit
 import cv2
 import time
 
+random.seed(42)
+
 '''
 Load data from Extended Yale B. Each subject has at least
 60 images of his/her face. There are no images of subject 14
@@ -34,7 +36,7 @@ Set variables
 '''
 images_per_class = 30
 number_person_testing=300
-epsilon=0.05
+epsilon=0.005
 width = 12
 height = 10
 
@@ -76,13 +78,19 @@ def testing_accuracy():
          a = cv2.imread(image,0)
          a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
 
-         Y=np.asmatrix(a_resized.flatten('F')).T
-         X=fn.optimization(A_norm,Y,epsilon)
+         Y = np.asmatrix(a_resized.flatten('F')).T
+         # Y = normalize(Y, axis=0, norm='l2')  
+         X = fn.optimization(A_norm,Y,epsilon)
          e_r = []
          
          for class_index in range(1,number_classes+1):
             X_g = fn.deltafunction(class_index,images_per_class,number_classes,X)
             e_r.append(np.linalg.norm(Y-A_norm*X_g,2))
+         print(e_r)
+         plt.plot(e_r,'o')
+         plt.grid()
+         plt.show()
+         sys.exit()
             
          if np.argmin(e_r)==id_number:
             # print(np.argmin(e_r))

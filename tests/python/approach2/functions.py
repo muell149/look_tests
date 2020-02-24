@@ -13,7 +13,6 @@ def optimization(A,Y,epsilon):
    # Constraint definition
    constraints = [cp.norm(A*X-Y,2)<=epsilon] 
    
-   
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
    prob.solve()
