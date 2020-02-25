@@ -29,11 +29,13 @@ number_classes = len(images_subjects)
 '''
 Set variables
 '''
+
 images_per_class = 30
-number_person_testing=100
-epsilon=0.001
+number_person_testing=1140
+epsilon=0.01
 width = 12
 height = 10
+threshold = 0.1
 
 '''
 Make a matrix with the images from all classes
@@ -78,21 +80,28 @@ def testing_accuracy():
          Y = np.asmatrix(a_resized.flatten('F')).T
          # Y = normalize(Y, axis=0, norm='l2')  
          X = fn.optimization(A_norm,Y,epsilon)
-         e_r = []
          
+         e_r = []
+         delta_l = []
          for class_index in range(1,number_classes+1):
             X_g = fn.deltafunction(class_index,images_per_class,number_classes,X)
-            e_r.append(np.linalg.norm(Y-A_norm*X_g,2))
+            delta_l.append(X_g)
             
-         if np.argmin(e_r)==id_number:
-            # print(np.argmin(e_r))
-            # print(id_number)
-            # print("Correct detection")
-            i = i+1
-         # else:
-         #    print(np.argmin(e_r))
-         #    print(id_number)
-         #    print("INCORRECT")    
+         if fn.sci(X,delta_l) >= threshold:
+            for class_index in range(0,number_classes):
+               e_r.append(np.linalg.norm(Y-A_norm*delta_l[class_index],2))
+          
+            if np.argmin(e_r)==id_number:
+               # print(np.argmin(e_r))
+               # print(id_number)
+               # print("Correct detection")
+               i = i+1
+            # else:
+            #    print(np.argmin(e_r))
+            #    print(id_number)
+            #    print("INCORRECT")    
+         else:
+            print("Image is not a person in the dataset")
 
          
    

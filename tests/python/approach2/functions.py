@@ -27,3 +27,11 @@ def deltafunction(class_index,images_per_class,number_classes,X):
       d[j,0]=X[j,0]
       
    return d
+
+def sci(x,delta_l):
+   for i in delta_l:
+      norm_delta.append(np.linalg.norm(i),1)
+   k = len(delta_l)
+   return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
+   
+   
