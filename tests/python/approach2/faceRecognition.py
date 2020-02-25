@@ -1,15 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import fetch_lfw_people
 from sklearn.preprocessing import normalize
-import scipy.misc
 import functions as fn
 import sys
 import random
 import glob
-import os
-import timeit
 import cv2
 import time
 
@@ -35,8 +30,8 @@ number_classes = len(images_subjects)
 Set variables
 '''
 images_per_class = 30
-number_person_testing=300
-epsilon=0.005
+number_person_testing=100
+epsilon=0.001
 width = 12
 height = 10
 
@@ -50,12 +45,13 @@ for id_number in range(number_classes):
    
    mat_images_person = [] 
    
-   for im in images_subjects[id_number][:images_per_class]:
+   for im in random.sample(images_subjects[id_number],k=images_per_class):
       a = cv2.imread(im,0)
       a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
       A.append(a_resized.flatten('F'))
+      images_subjects[id_number].remove(im)
 
-A=np.asmatrix(A).T
+A = np.asmatrix(A).T
 A_norm = normalize(A, axis=0, norm='l2')   
    
 print(" ")
@@ -68,10 +64,11 @@ Start making the algorithm.
 
 def testing_accuracy():
    i=0
+   counter=0
    testing_each_class=int(number_person_testing/number_classes)
    
    for id_number in range(number_classes):
-      testing_images = random.choices(images_subjects[id_number][images_per_class:],k=testing_each_class)
+      testing_images = random.sample(images_subjects[id_number],k=testing_each_class)
       
       for image in testing_images:
          
@@ -86,11 +83,6 @@ def testing_accuracy():
          for class_index in range(1,number_classes+1):
             X_g = fn.deltafunction(class_index,images_per_class,number_classes,X)
             e_r.append(np.linalg.norm(Y-A_norm*X_g,2))
-         print(e_r)
-         plt.plot(e_r,'o')
-         plt.grid()
-         plt.show()
-         sys.exit()
             
          if np.argmin(e_r)==id_number:
             # print(np.argmin(e_r))
@@ -100,12 +92,16 @@ def testing_accuracy():
          # else:
          #    print(np.argmin(e_r))
          #    print(id_number)
-         #    print("INCORRECT")     
+         #    print("INCORRECT")    
+
+         
    
+   print(" ")
    print("Percentage of accuracy:", i*100/number_person_testing,"%")
 
 start_time = time.time()
 testing_accuracy()
 end_time = time.time()
 
+print(" ")
 print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
