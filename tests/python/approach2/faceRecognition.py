@@ -63,7 +63,11 @@ Start making the algorithm.
 '''
 
 def testing_accuracy():
+   print("**************************************")
+   print("      Start checking accuracy...")
+   print(" ")
    i=0
+   counter = 0
    testing_each_class=int(number_person_testing/number_classes)
    
    for id_number in range(number_classes):
@@ -78,7 +82,14 @@ def testing_accuracy():
          else:
             if class_image == id_number:
                #print("Image was correctly classified")
-               i = i+1         
+               i = i+1
+      
+         counter = counter + 1
+         
+         progress = counter*100/number_person_testing
+         
+         if progress % 10 == 0:
+            print("Overall progress ",progress,"%")
    
    print(" ")
    print("Percentage of accuracy:", i*100/number_person_testing,"%")
