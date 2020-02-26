@@ -29,6 +29,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
    return d
 
 def sci(x,delta_l):
+   norm_delta=[]
    for i in delta_l:
       norm_delta.append(np.linalg.norm(i),1)
    k = len(delta_l)
