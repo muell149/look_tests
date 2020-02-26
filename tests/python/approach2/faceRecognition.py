@@ -54,7 +54,7 @@ A = np.asmatrix(A).T
 A_norm = normalize(A, axis=0, norm='l2')   
    
 print(" ")
-print("Got matrix that contains info for all classes")
+print(" Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.")
 print(" ")
 
 
