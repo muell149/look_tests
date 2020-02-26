@@ -36,7 +36,7 @@ Set variables
 '''
 images_per_class = 30
 number_person_testing=300
-epsilon=0.005
+epsilon=0.5
 width = 12
 height = 10
 
@@ -85,12 +85,7 @@ def testing_accuracy():
          
          for class_index in range(1,number_classes+1):
             X_g = fn.deltafunction(class_index,images_per_class,number_classes,X)
-            e_r.append(np.linalg.norm(Y-A_norm*X_g,2))
-         print(e_r)
-         plt.plot(e_r,'o')
-         plt.grid()
-         plt.show()
-         sys.exit()
+            e_r.append(np.linalg.norm(Y-A_norm*X_g,2))         
             
          if np.argmin(e_r)==id_number:
             # print(np.argmin(e_r))
