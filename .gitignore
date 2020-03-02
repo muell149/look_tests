@@ -1,3 +1,4 @@
 *.pgm
 *.info
 *.LOG
+*.npy

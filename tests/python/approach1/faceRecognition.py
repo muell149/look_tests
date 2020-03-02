@@ -1,113 +1,141 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import fetch_lfw_people
-import scipy.misc
+from sklearn.preprocessing import normalize
 import functions as fn
 import sys
 import random
-import timeit
+import glob
+import cv2
+import time
+import json
 
-'''
-Load data from Labeled Faces in the Wild. We will only use
-persons with at least 100 images of their face.
-'''
-
-lfw_dataset = fetch_lfw_people(min_faces_per_person=50,color=False, resize=.16)
-
-# Shape and number of samples
-n_samples, h, w = lfw_dataset.images.shape
-
-# Vector with components as the flattened vectors with the images
-images = lfw_dataset.data
-
-# Id of each image
-ordered_id = lfw_dataset.target
-
-# Names of the person in each image
-target_names = lfw_dataset.target_names
-
-# Split into a training and testing set
-x_train, x_test, y_train, y_test = train_test_split(
-    images, ordered_id, test_size=0.25, random_state=42)
+random.seed(42)
 
 '''
 Set variables
 '''
+saveML = True
+images_per_class = 30
+number_person_testing=1140
+width = 12
+height = 10
 rho = 0.02
-rank = rho * h * w
-number_images_per_person = 30
+rank = rho * height * width
 lamb = .05
-number_person_testing=250
+
 
 '''
-Make a matrix for each class (or person). Each row will be a 
-different image of the same person.
+Load data from Extended Yale B. Each subject has at least
+60 images of his/her face. There are no images of subject 14
 '''
-# Vector of matrices
-A = []
+# Store the path to the images for each subject.
+images_subjects = []
+for directory in glob.glob("../approach2/CroppedYale/*"):
+   images_subjects.append(glob.glob(directory+"/*.pgm"))
 
-for id_number in range(len(target_names)):
-   mat_images_person = [] 
-   for i in range(len(y_train)):
-      if y_train[i]==id_number:
-         mat_images_person.append(x_train[i]/255)
-   mat_images_person = mat_images_person[:number_images_per_person]
-   A.append(np.asmatrix(mat_images_person).T)
-   
-print(" ")
-print("Got matrix that contains info from each class")
-print(" ")
+number_classes = len(images_subjects)
 
-'''
-Start making the algorithm.
-'''
-M_class = []
-L_class = []
 
-# Iteration over the different classes (or persons)
-for index in range(len(A)-1):
-   t = len(target_names[index])
-   print(" ")
-   print(" ")
-   print(" ")
-   print("*"*(int((47-t)/2))," Start Algorithm for",target_names[index],"Class ","*"*(int((47-t)/2)))
-   print(" ")
-   print("Class ",index+1,"/",len(A),sep='')
-   print(" ")
-   print("Getting clean information matrix...")
+if saveML == False:
+   '''
+   Make a matrix for each class (or person). Each row will be a 
+   different image of the same person.
+   '''
+   # Vector of matrices
+   A = []
 
-   # Get low rank approximation
-   M = fn.low_rank_approx(A[index],rank)
+   for id_number in range(number_classes):
+      
+      mat_images_person = [] 
+      for im in random.sample(images_subjects[id_number],k=images_per_class):
+         a = cv2.imread(im,0)
+         a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
+         mat_images_person.append(a_resized.flatten('F'))
+         images_subjects[id_number].remove(im)
+      
+      A.append(normalize(np.asmatrix(mat_images_person).T,axis=0,norm='l2'))
 
-   print("Got clean information")
-   
-   # Optimization part
-   L = fn.optimization(M,lamb)
-   
-   
-   M_class.append(M)
-   L_class.append(M)
+   print(" ")
+   print(" Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.")
+   print(" ")
+
+   '''
+   Start making the algorithm.
+   '''
+   M_class = []
+   L_class = []
+
+   # Iteration over the different classes (or persons)
+   print("Start Algorithm for each class")
+
+   for index in range(number_classes):
+      
+      print("Class ",index+1,"/",number_classes,sep='')
+      print(" ")
+      print("Getting clean information matrix...")
+
+      # Get low rank approximation
+      M = fn.low_rank_approx(A[index],rank)
+
+      print("Got clean information")
+      
+      # Optimization part
+      L = fn.optimization(M,lamb)
+      
+      
+      M_class.append(M)
+      L_class.append(L)
+
+   np.save('M_class.npy', M_class)
+   np.save('L_class.npy', L_class)
+      
+
+M_class = np.load('M_class.npy')
+L_class = np.load('L_class.npy')
 
 print(" ")
 print("Vectors M and L obtained")
 print(" ")
 print(" ")
+
 '''
 Identification
 '''
-
 print("Starting identification")
-def testing_accuracy():
+print(" ")
+i=0
+counter = 0
+testing_each_class=int(number_person_testing/number_classes)
+
+
+for id_number in range(number_classes):
+   testing_images = random.sample(images_subjects[id_number],k=testing_each_class)
+
+   for image in testing_images:
+      
+      a = cv2.imread(image,0)
    
-   i=0
-   for index in random.sample(range(0, len(y_test)), number_person_testing):
-      # print("An image of  ", target_names[y_test[index]], 
-      #       "has been identified as ", target_names[fn.identify(x_test[index],M_class,L_class)])
-      if target_names[y_test[index]]==target_names[fn.identify(x_test[index],M_class,L_class)]:
-         i = i+1
+      # Original image is resized 
+      a_resized = cv2.resize(a,(width,height),interpolation=cv2.INTER_AREA)
+      
+      # Resize image is flattened
+      Y = np.asmatrix(a_resized.flatten('F')).T
+      
+      identity = fn.identify(Y,M_class,L_class)
+      
+      if identity == id_number:
+         i = i + 1
          
-   print("Percentage of accuracy:", i*100/number_person_testing,"%")
+      # else:
+      #    print(identity,id_number)
+      #    print("Incorrect identification")
    
-elapsed_time = timeit.timeit(testing_accuracy,number=1)
-print("Elapsed time to identify",number_person_testing, "people is: ", elapsed_time,"s")
+      counter = counter + 1
+      
+      progress = counter*100/number_person_testing
+      
+      if progress % 10 == 0:
+         print("Overall progress ",progress,"%")
+   
+print(" ")
+print("Percentage of accuracy:", i*100/number_person_testing,"%")

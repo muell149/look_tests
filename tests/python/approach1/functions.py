@@ -41,6 +41,10 @@ def optimization(M, lamb):
    W = cp.Variable((vc,vc)) 
    E = cp.Variable((mr,mc)) 
    
+   M = np.asmatrix(M)
+   U = np.asmatrix(U)
+   V = np.asmatrix(V)
+
    # Objective function definition
    print("  Defining objective function")
    objective = cp.Minimize( cp.norm(V*W*V.T, "nuc") 
@@ -55,9 +59,12 @@ def optimization(M, lamb):
    print("  Define problem to solve")
    prob = cp.Problem(objective,constraints)
 
-   prob.solve(verbose=True)
-   print("="*30,"Problem solved","="*30)
-   print("="*76)
+   prob.solve()
+   # prob.solve(verbose=True)
+   print("="*5,"Problem solved","="*5)
+   print(" ")
+   print(" ")
+   print(" ")
    
    L = U*(np.identity(W.value.shape[0])-W.value)*U.T
    
@@ -81,7 +88,7 @@ def identify(y,vec_M,vec_L):
    e = np.empty(len(vec_M))
    
    for i in range(len(vec_M)):
-      e[i] = (np.linalg.norm(vec_L[i].getH()*np.asmatrix(y).T-vec_L[i].getH()*vec_M[i],2))**2
+      e[i] = (np.linalg.norm(np.asmatrix(vec_L[i]).getH()*np.asmatrix(y)-np.asmatrix(vec_L[i]).getH()*vec_M[i],2))**2
    
    return np.argmin(e)
 
