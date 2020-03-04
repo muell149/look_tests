@@ -30,7 +30,7 @@ Load data from Extended Yale B. Each subject has at least
 '''
 # Store the path to the images for each subject.
 images_subjects = []
-for directory in glob.glob("../approach2/CroppedYale/*"):
+for directory in glob.glob("../../CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
 
 number_classes = len(images_subjects)
