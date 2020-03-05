@@ -19,7 +19,7 @@ number_person_testing=1140
 epsilon=0.01
 width = 12
 height = 10
-threshold = 0.5
+threshold = 0.3
 
 
 '''
@@ -30,7 +30,7 @@ Load data from Extended Yale B. Each subject has at least
 images_subjects = []
 for directory in glob.glob("../../CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
-test = images_subjects.pop()
+test = images_subjects[1]
 number_classes = len(images_subjects)
 
 '''
