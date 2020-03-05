@@ -32,9 +32,10 @@ Load data from Extended Yale B. Each subject has at least
 images_subjects = []
 for directory in glob.glob("../../CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
-
+images_subjects.pop()
 number_classes = len(images_subjects)
-
+print(number_classes)
+sys.exit()
 
 if saveML == False:
    '''

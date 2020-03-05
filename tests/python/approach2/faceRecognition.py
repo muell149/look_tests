@@ -19,7 +19,7 @@ number_person_testing=1140
 epsilon=0.01
 width = 12
 height = 10
-threshold = 0.01
+threshold = 0.5
 
 
 '''
@@ -28,11 +28,10 @@ Load data from Extended Yale B. Each subject has at least
 '''
 # Store the path to the images for each subject.
 images_subjects = []
-for directory in glob.glob("CroppedYale/*"):
+for directory in glob.glob("../../CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
-
+test = images_subjects.pop()
 number_classes = len(images_subjects)
-
 
 '''
 Make a matrix with the images from all classes
@@ -94,16 +93,21 @@ def testing_accuracy():
    print(" ")
    print("Percentage of accuracy:", i*100/number_person_testing,"%")
 
-start_time = time.time()
-testing_accuracy()
-end_time = time.time()
+def accuracy():
+   start_time = time.time()
+   testing_accuracy()
+   end_time = time.time()
 
-print(" ")
-print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
+   print(" ")
+   print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
+   
+def testImage(img):
+   class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold)
+         
+   if class_image == -1 :
+      print("Image is not a person in the dataset")
+   else:
+      print("Image was classified as the subject", class_image)
 
-#*******************************************************************************************
-# Plotting images
-
-# img = cv2.imread(images[0][1],0)
-# cv2.imshow('image',img)
-# cv2.waitKey(0)
+for i in test:
+   testImage(i)
