@@ -19,7 +19,7 @@ images_per_class = 30
 number_person_testing=1140
 width = 12
 height = 10
-rho = 0.02
+rho = 0.2
 rank = rho * height * width
 lamb = .05
 
