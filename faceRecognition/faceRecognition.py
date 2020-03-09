@@ -22,6 +22,7 @@ height                  = 10
 threshold               = 0.01
 max_iters               = 100
 errors_print            = False
+occlude                 = False
 
 
 '''
@@ -32,7 +33,7 @@ Load data from Extended Yale B. Each subject has at least
 images_subjects = []
 for directory in glob.glob("CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
-test_not_in = images_subjects.pop(10)
+#test_not_in = images_subjects.pop(10)
 test_in = images_subjects[3]
 number_classes = len(images_subjects)
 
@@ -58,13 +59,15 @@ A_norm = normalize(A, axis=0, norm='l2')
 print(" ")
 print(" Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.")
 print(" ")
+print(" Size of each image is",width,"x",height)
+print(" \n")
 
 
 '''
 Start making the algorithm.
 '''
 
-def testing_accuracy(errors_print):
+def testing_accuracy(occlude,errors_print):
    print("********************************************")
    print("         Start checking accuracy...")
    print(" ")
@@ -100,7 +103,7 @@ def testing_accuracy(errors_print):
    if len(errors) != 0:
       print(" ")
       print("-"*44)
-      print("There were unknown errors in some files")
+      print("There were unknown errors in",len(errors),"files")
       if errors_print==True:
          print("FILES WITH ERRORS")
          for i in errors:
@@ -112,7 +115,7 @@ def testing_accuracy(errors_print):
 
 def accuracy():
    start_time = time.time()
-   testing_accuracy(errors_print)
+   testing_accuracy(occlude,errors_print)
    end_time = time.time()
 
    print(" ")

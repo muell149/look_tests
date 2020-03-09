@@ -2,4 +2,4 @@
 *.info
 *.LOG
 *.npy
-*.bad
+*pgm.bad
