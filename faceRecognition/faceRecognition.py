@@ -19,7 +19,7 @@ number_person_testing=1140
 epsilon=0.01
 width = 12
 height = 10
-threshold = 0.3
+threshold = 0.1
 
 
 '''
@@ -28,9 +28,10 @@ Load data from Extended Yale B. Each subject has at least
 '''
 # Store the path to the images for each subject.
 images_subjects = []
-for directory in glob.glob("../../CroppedYale/*"):
+for directory in glob.glob("CroppedYale/*"):
    images_subjects.append(glob.glob(directory+"/*.pgm"))
-test = images_subjects[1]
+test_not_in = images_subjects.pop(10)
+test_in = images_subjects[3]
 number_classes = len(images_subjects)
 
 '''
@@ -74,10 +75,11 @@ def testing_accuracy():
       
       for image in testing_images:
          
-         class_image = fn.classify(image,width,height,number_classes,images_per_class,A_norm,epsilon,threshold)
+         class_image = fn.classify(image,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,False)
          
          if class_image == -1 :
-            print("Image is not a person in the dataset")
+            # print("Image is not a person in the dataset")
+            pass
          else:
             if class_image == id_number:
                #print("Image was correctly classified")
@@ -102,12 +104,12 @@ def accuracy():
    print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
    
 def testImage(img):
-   class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold)
+   class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,True)
          
    if class_image == -1 :
       print("Image is not a person in the dataset")
    else:
       print("Image was classified as the subject", class_image)
 
-for i in test:
-   testImage(i)
+#testImage(test_not_in[5])
+accuracy()

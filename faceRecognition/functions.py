@@ -1,5 +1,6 @@
 import numpy as np
 import cvxpy as cp
+import matplotlib.pyplot as plt
 import sys
 import cv2
 
@@ -37,7 +38,7 @@ def optimization(A,Y,epsilon):
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
-   prob.solve()
+   prob.solve(solver=cp.SCS, max_iters=300)
    # prob.solve(verbose=True)
    
    return X.value
@@ -79,7 +80,7 @@ def sci(x,delta_l):
    
    return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
 
-def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold):
+def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,plot):
    '''
    Function to classify image.
    '''
@@ -101,13 +102,19 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
       X_g = deltafunction(class_index,images_per_class,number_classes,X)
       delta_l.append(X_g)
    
-   if sci(X,delta_l) >= threshold:
+   e_r = []
       
-      e_r = []
-      
-      for class_index in range(0,number_classes):
-         e_r.append(np.linalg.norm(Y-A*delta_l[class_index],2))
-      
+   for class_index in range(0,number_classes):
+      e_r.append(np.linalg.norm(Y-A*delta_l[class_index],2))
+   
+   if plot==True:
+      plt.plot(e_r,'o')
+      plt.xlabel("Subject")
+      plt.ylabel(r"Error $||y-A\delta_i||_2$")
+      plt.grid()
+      plt.show()
+   
+   if sci(X,delta_l) >= threshold:      
       return np.argmin(e_r)
             
    else:
