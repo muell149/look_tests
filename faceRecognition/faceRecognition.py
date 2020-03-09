@@ -14,12 +14,14 @@ random.seed(42)
 Set variables
 '''
 
-images_per_class = 30
-number_person_testing=1140
-epsilon=0.01
-width = 12
-height = 10
-threshold = 0.1
+images_per_class        = 30
+number_person_testing   = 1140
+epsilon                 = 0.01
+width                   = 12
+height                  = 10
+threshold               = 0.01
+max_iters               = 100
+errors_print            = False
 
 
 '''
@@ -62,49 +64,63 @@ print(" ")
 Start making the algorithm.
 '''
 
-def testing_accuracy():
-   print("**************************************")
-   print("      Start checking accuracy...")
+def testing_accuracy(errors_print):
+   print("********************************************")
+   print("         Start checking accuracy...")
    print(" ")
    i=0
    counter = 0
    testing_each_class=int(number_person_testing/number_classes)
-   
+   errors=[]
    for id_number in range(number_classes):
       testing_images = random.sample(images_subjects[id_number],k=testing_each_class)
       
       for image in testing_images:
+         try:
+            class_image = fn.classify(image,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,False)
+            
          
-         class_image = fn.classify(image,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,False)
-         
-         if class_image == -1 :
-            # print("Image is not a person in the dataset")
-            pass
-         else:
-            if class_image == id_number:
-               #print("Image was correctly classified")
-               i = i+1
+            if class_image == -1 :
+               #print("Image is not a person in the dataset")
+               pass
+            else:
+               if class_image == id_number:
+                  #print("Image was correctly classified")
+                  i = i+1
+         except:
+            errors.append(image)
       
          counter = counter + 1
          
          progress = counter*100/number_person_testing
-         
+
          if progress % 10 == 0:
             print("Overall progress ",progress,"%")
    
+   if len(errors) != 0:
+      print(" ")
+      print("-"*44)
+      print("There were unknown errors in some files")
+      if errors_print==True:
+         print("FILES WITH ERRORS")
+         for i in errors:
+            print(i)
+      print("-"*44)
+   
    print(" ")
-   print("Percentage of accuracy:", i*100/number_person_testing,"%")
+   print("Percentage of accuracy:", i*100/(number_person_testing-len(errors)),"%")
 
 def accuracy():
    start_time = time.time()
-   testing_accuracy()
+   testing_accuracy(errors_print)
    end_time = time.time()
 
    print(" ")
    print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
+   print("Average time to classify one person was",(end_time-start_time)/number_person_testing,"s")
    
 def testImage(img):
-   class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,True)
+   class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,True)
          
    if class_image == -1 :
       print("Image is not a person in the dataset")

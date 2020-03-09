@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import cv2
 
-def optimization(A,Y,epsilon):
+def optimization(A,Y,epsilon,max_iters):
    '''
    Solves the following optimization problem
    
@@ -38,8 +38,7 @@ def optimization(A,Y,epsilon):
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
-   prob.solve(solver=cp.SCS, max_iters=300)
-   # prob.solve(verbose=True)
+   prob.solve(solver=cp.SCS, max_iters=max_iters, verbose=False)
    
    return X.value
 
@@ -80,7 +79,7 @@ def sci(x,delta_l):
    
    return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
 
-def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,plot):
+def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,max_iters,plot):
    '''
    Function to classify image.
    '''
@@ -94,7 +93,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    Y = np.asmatrix(a_resized.flatten('F')).T
    
    # Solve the optimization problem
-   X = optimization(A,Y,epsilon)
+   X = optimization(A,Y,epsilon,max_iters)
    
    delta_l = []
    
