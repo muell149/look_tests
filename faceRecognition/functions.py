@@ -26,9 +26,9 @@ def optimization(A,Y,epsilon,max_iters):
    
       ||.||_1   is called the l_1 norm
    '''
-
+   x_rows = A.shape[1]
    # The variable, has to has the same rows as the matrix A
-   X = cp.Variable((A.shape[1],1)) 
+   X = cp.Variable((x_rows,1)) 
 
    # Objective function definition
    objective = cp.Minimize(cp.norm(X, 1))
@@ -38,8 +38,8 @@ def optimization(A,Y,epsilon,max_iters):
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
-   prob.solve(solver=cp.SCS, max_iters=max_iters, verbose=False)
-   
+   prob.solve(solver=cp.SCS,gpu=False,use_indirect=False,max_iters=max_iters,verbose=False)
+
    return X.value
 
 def deltafunction(class_index,images_per_class,number_classes,X):
@@ -54,7 +54,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
    d = np.asmatrix(np.zeros((m,1)))
    
    X = np.asmatrix(X)
-   
+
    for j in range((class_index-1)*images_per_class, class_index*images_per_class):
       d[j,0]=X[j,0]
       

@@ -20,7 +20,7 @@ epsilon                 = 0.01
 width                   = 12
 height                  = 10
 threshold               = 0.01
-max_iters               = 100
+max_iters               = 50
 errors_print            = False
 occlude                 = False
 
@@ -81,7 +81,6 @@ def testing_accuracy(occlude,errors_print):
       for image in testing_images:
          try:
             class_image = fn.classify(image,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,False)
-            
          
             if class_image == -1 :
                #print("Image is not a person in the dataset")
