@@ -20,54 +20,55 @@ epsilon                 = 0.01
 width                   = 12
 height                  = 10
 threshold               = 0.01
-max_iters               = 50
+max_iters               = 200
 errors_print            = False
 occlude                 = False
 
 
-'''
-Load data from Extended Yale B. Each subject has at least
-60 images of his/her face. There are no images of subject 14
-'''
-# Store the path to the images for each subject.
-images_subjects = []
-for directory in glob.glob("CroppedYale/*"):
-   images_subjects.append(glob.glob(directory+"/*.pgm"))
-#test_not_in = images_subjects.pop(10)
-test_in = images_subjects[3]
-number_classes = len(images_subjects)
+def testing_accuracy(occlude,errors_print,width,height):
 
-'''
-Make a matrix with the images from all classes
-'''
-# Vector of matrices
-A = []
+   '''
+   Load data from Extended Yale B. Each subject has at least
+   60 images of his/her face. There are no images of subject 14
+   '''
+   # Store the path to the images for each subject.
+   images_subjects = []
+   for directory in glob.glob("CroppedYale/*"):
+      images_subjects.append(glob.glob(directory+"/*.pgm"))
+   #test_not_in = images_subjects.pop(10)
+   #test_in = images_subjects[3]
+   number_classes = len(images_subjects)
 
-for id_number in range(number_classes):
-   
-   mat_images_person = [] 
-   
-   for im in random.sample(images_subjects[id_number],k=images_per_class):
-      a = cv2.imread(im,0)
-      a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
-      A.append(a_resized.flatten('F'))
-      images_subjects[id_number].remove(im)
+   '''
+   Make a matrix with the images from all classes
+   '''
+   # Vector of matrices
+   A = []
 
-A = np.asmatrix(A).T
-A_norm = normalize(A, axis=0, norm='l2')   
-   
-print(" ")
-print(" Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.")
-print(" ")
-print(" Size of each image is",width,"x",height)
-print(" \n")
+   for id_number in range(number_classes):
+
+      for im in random.sample(images_subjects[id_number],k=images_per_class):
+         a = cv2.imread(im,0)
+         a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
+         A.append(a_resized.flatten('F'))
+         images_subjects[id_number].remove(im)
+
+   A = np.asmatrix(A).T
+   A_norm = normalize(A, axis=0, norm='l2')   
+      
+   print(" ")
+   print(" Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.")
+   print(" ")
+   print(" Size of each image is",width,"x",height)
+   print(" \n")
+#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+
+   '''
+   Start making the algorithm.
+   '''
 
 
-'''
-Start making the algorithm.
-'''
-
-def testing_accuracy(occlude,errors_print):
    print("********************************************")
    print("         Start checking accuracy...")
    print(" ")
@@ -111,15 +112,17 @@ def testing_accuracy(occlude,errors_print):
    
    print(" ")
    print("Percentage of accuracy:", i*100/(number_person_testing-len(errors)),"%")
+   return float(i*100/(number_person_testing-len(errors)))
 
-def accuracy():
+def accuracy(width,height):
    start_time = time.time()
-   testing_accuracy(occlude,errors_print)
+   accuracy_res=testing_accuracy(occlude,errors_print,width,height)
    end_time = time.time()
 
    print(" ")
    print("Time it took to classify",number_person_testing,"images was",end_time-start_time,"s")
    print("Average time to classify one person was",(end_time-start_time)/number_person_testing,"s")
+   return [float((end_time-start_time)/number_person_testing),accuracy_res]
    
 def testImage(img):
    class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,True)
@@ -129,5 +132,20 @@ def testImage(img):
    else:
       print("Image was classified as the subject", class_image)
 
+#--------------------------------------------------------------------------------------
+'''
+SIMPLE TESTS
+'''
 #testImage(test_not_in[5])
-accuracy()
+#accuracy(width,height)
+
+'''
+STUDY ACCURACY AND TIME VS IMAGE SIZE
+'''
+sizes = [(8,7),(9,6),(12,10),(16,14),(20,15),(24,21),(32,28),(64,56)]
+
+f = open("differentSizes.txt", "a")
+for (width,height) in sizes:
+   [running_time, accuracy_res] = accuracy(width,height)
+   f.write("{},{},{},{}\n".format(width,height,running_time,accuracy_res))
+f.close()
