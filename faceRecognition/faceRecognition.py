@@ -23,20 +23,19 @@ threshold               = 0.01
 max_iters               = 200
 errors_print            = False
 occlude                 = False
+directory               = "CroppedYale/*"
 
 
-def testing_accuracy(occlude,errors_print,width,height):
-
+def getmatrix(dir):
    '''
    Load data from Extended Yale B. Each subject has at least
    60 images of his/her face. There are no images of subject 14
    '''
    # Store the path to the images for each subject.
    images_subjects = []
-   for directory in glob.glob("CroppedYale/*"):
+   for directory in glob.glob(dir):
       images_subjects.append(glob.glob(directory+"/*.pgm"))
-   #test_not_in = images_subjects.pop(10)
-   #test_in = images_subjects[3]
+
    number_classes = len(images_subjects)
 
    '''
@@ -61,13 +60,15 @@ def testing_accuracy(occlude,errors_print,width,height):
    print(" ")
    print(" Size of each image is",width,"x",height)
    print(" \n")
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
 
+   return A_norm, number_classes, images_subjects
+
+def testing_accuracy(occlude,errors_print,width,height):
    '''
    Start making the algorithm.
    '''
 
+   A_norm, number_classes, images_subjects = getmatrix(directory)
 
    print("********************************************")
    print("         Start checking accuracy...")
@@ -125,6 +126,9 @@ def accuracy(width,height):
    return [float((end_time-start_time)/number_person_testing),accuracy_res]
    
 def testImage(img):
+
+   A_norm, number_classes, _ = getmatrix(directory)
+
    class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,True)
          
    if class_image == -1 :
@@ -136,16 +140,18 @@ def testImage(img):
 '''
 SIMPLE TESTS
 '''
+#test_not_in = images_subjects.pop(10)
+#test_in = images_subjects[3]
+
 #testImage(test_not_in[5])
-#accuracy(width,height)
 
 '''
 STUDY ACCURACY AND TIME VS IMAGE SIZE
 '''
-sizes = [(8,7),(9,6),(12,10),(16,14),(20,15),(24,21),(32,28),(64,56)]
+#sizes = [(8,7),(9,6),(12,10),(16,14),(20,15),(24,21),(32,28),(64,56)]
 
-f = open("differentSizes.txt", "a")
-for (width,height) in sizes:
-   [running_time, accuracy_res] = accuracy(width,height)
-   f.write("{},{},{},{}\n".format(width,height,running_time,accuracy_res))
-f.close()
+#f = open("differentSizes.txt", "a")
+#for (width,height) in sizes:
+#   [running_time, accuracy_res] = accuracy(width,height)
+#   f.write("{},{},{},{}\n".format(width,height,running_time,accuracy_res))
+#f.close()
