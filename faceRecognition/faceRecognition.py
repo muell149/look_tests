@@ -26,7 +26,7 @@ occlude                 = False
 directory               = "CroppedYale/*"
 
 
-def getmatrix(dir):
+def getmatrix(dir,images_per_class):
    '''
    Load data from Extended Yale B. Each subject has at least
    60 images of his/her face. There are no images of subject 14
@@ -63,12 +63,12 @@ def getmatrix(dir):
 
    return A_norm, number_classes, images_subjects
 
-def testing_accuracy(occlude,errors_print,width,height):
+def testing_accuracy(occlude,errors_print,width,height,images_per_class):
    '''
    Start making the algorithm.
    '''
 
-   A_norm, number_classes, images_subjects = getmatrix(directory)
+   A_norm, number_classes, images_subjects = getmatrix(directory,images_per_class)
 
    print("********************************************")
    print("         Start checking accuracy...")
@@ -115,9 +115,9 @@ def testing_accuracy(occlude,errors_print,width,height):
    print("Percentage of accuracy:", i*100/(number_person_testing-len(errors)),"%")
    return float(i*100/(number_person_testing-len(errors)))
 
-def accuracy(width,height):
+def accuracy(width,height,images_per_class):
    start_time = time.time()
-   accuracy_res=testing_accuracy(occlude,errors_print,width,height)
+   accuracy_res=testing_accuracy(occlude,errors_print,width,height,images_per_class)
    end_time = time.time()
 
    print(" ")
@@ -125,9 +125,9 @@ def accuracy(width,height):
    print("Average time to classify one person was",(end_time-start_time)/number_person_testing,"s")
    return [float((end_time-start_time)/number_person_testing),accuracy_res]
    
-def testImage(img):
+def testImage(img,width,height,images_per_class):
 
-   A_norm, number_classes, _ = getmatrix(directory)
+   A_norm, number_classes, _ = getmatrix(directory,images_per_class)
 
    class_image = fn.classify(img,width,height,number_classes,images_per_class,A_norm,epsilon,threshold,max_iters,True)
          
@@ -138,20 +138,30 @@ def testImage(img):
 
 #--------------------------------------------------------------------------------------
 '''
-SIMPLE TESTS
+SINGLE IMAGE TEST
 '''
-#test_not_in = images_subjects.pop(10)
-#test_in = images_subjects[3]
 
-#testImage(test_not_in[5])
+#testImage(test_not_in[5],width,height,images_per_class)
 
 '''
 STUDY ACCURACY AND TIME VS IMAGE SIZE
 '''
 #sizes = [(8,7),(9,6),(12,10),(16,14),(20,15),(24,21),(32,28),(64,56)]
 
-#f = open("differentSizes.txt", "a")
+
 #for (width,height) in sizes:
+#   f = open("differentSizes.txt", "a")
 #   [running_time, accuracy_res] = accuracy(width,height)
 #   f.write("{},{},{},{}\n".format(width,height,running_time,accuracy_res))
-#f.close()
+#   f.close()
+
+'''
+STUDY ACCURACY AND TIME VS NUMBER OF TRAINING IMAGES
+'''
+images_per_class = [5,9,13,17,21,25,27,30,31]
+images_per_class = [28,29,31,32,33]
+for size in images_per_class:
+   f = open("differentImagesPerClass.txt", "a")
+   [running_time, accuracy_res] = accuracy(12,10,size)
+   f.write("{},{},{}\n".format(size,running_time,accuracy_res))
+   f.close()

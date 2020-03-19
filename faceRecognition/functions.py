@@ -38,7 +38,8 @@ def optimization(A,Y,epsilon,max_iters):
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
-   prob.solve(solver=cp.SCS,gpu=False,use_indirect=True,max_iters=max_iters,verbose=False)
+   #prob.solve(solver=cp.SCS,gpu=False,use_indirect=True,max_iters=max_iters,verbose=False)
+   prob.solve()
 
    return X.value
 
