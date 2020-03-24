@@ -3,45 +3,8 @@ import cvxpy as cp
 import matplotlib.pyplot as plt
 import sys
 import cv2
-from sklearn.preprocessing import normalize
-from sklearn import random_projection
-import glob
-import time
-import random
 
-def getmatrix(dir,images_per_class,height,width):
-
-   # Store the path to the images for each subject.
-   images_subjects = []
-   for directory in glob.glob(dir):
-      images_subjects.append(glob.glob(directory+"/*.pgm"))
-
-   number_classes = len(images_subjects)
-
-   '''
-   Make a matrix with the images from all classes
-   '''
-   # Vector of matrices
-   A = []
-
-   for id_number in range(number_classes):
-
-      for im in random.sample(images_subjects[id_number],k=images_per_class):
-         
-         a = cv2.imread(im,0)
-         a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
-         A.append(a_resized.flatten('F'))
-         images_subjects[id_number].remove(im)
-         
-   A_matrix = normalize(np.asmatrix(A).T, axis=0, norm='l2')   
-      
-   print("\n Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.\n")
-   print(" Size of each image is",height,"x",width,"\n")
-   
-   return A_matrix, number_classes, images_subjects
-
-
-def optimization(A,Y,epsilon,print_proc=False):
+def optimization(A,Y,epsilon,max_iters):
    '''
    Solves the following optimization problem
    
@@ -64,7 +27,6 @@ def optimization(A,Y,epsilon,print_proc=False):
       ||.||_1   is called the l_1 norm
    '''
    x_rows = A.shape[1]
-   
    # The variable, has to has the same rows as the matrix A
    X = cp.Variable((x_rows,1)) 
 
@@ -76,7 +38,8 @@ def optimization(A,Y,epsilon,print_proc=False):
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
-   prob.solve(verbose=print_proc)
+   #prob.solve(solver=cp.SCS,gpu=False,use_indirect=True,max_iters=max_iters,verbose=False)
+   prob.solve()
 
    return X.value
 
@@ -117,7 +80,7 @@ def sci(x,delta_l):
    
    return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
 
-def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,plot):
+def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,max_iters,plot):
    '''
    Function to classify image.
    '''
@@ -131,8 +94,8 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    Y = np.asmatrix(a_resized.flatten('F')).T
    
    # Solve the optimization problem
-   X = optimization(A,Y,epsilon)
-
+   X = optimization(A,Y,epsilon,max_iters)
+   
    delta_l = []
    
    for class_index in range(1,number_classes+1):
