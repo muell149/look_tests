@@ -14,7 +14,7 @@ number_person_testing   = 1140
 epsilon                 = 0.01
 height                  = 12
 width                   = 10
-threshold               = 0.2
+threshold               = 0.5
 directory               = "CroppedYale/*"
 
 A, number_classes, remaining_images = fn.getmatrix(dir = directory, 
@@ -25,11 +25,11 @@ A, number_classes, remaining_images = fn.getmatrix(dir = directory,
 Studies
 '''
 
-individual_test         = False
-#image_for_testing       = remaining_images[0][2] # <- In the dataset
+individual_test         = True
+image_for_testing       = remaining_images[6][2] # <- In the dataset
 image_for_testing       = "yaleB05/yaleB05_P00A-020E-10.pgm" # <- Not in the dataset
 
-test_accuracy_normal    = True
+test_accuracy_normal    = False
 
 
 #*************************************************************************************
@@ -39,7 +39,7 @@ TEST FOR AN INDIVIDUAL IMAGE
 '''
 
 if individual_test:
-   ++indicator
+   indicator = 1
    print("**********************************************************")
    print("*             Start test for an individual...            *")   
    print("**********************************************************\n")
@@ -59,7 +59,7 @@ TEST ACCURACY WITH NORMAL IMAGES
 '''
 
 if test_accuracy_normal:
-   ++indicator
+   indicator = 1
    print("**********************************************************")
    print("*      Start testing accuracy with normal images...      *")
    print("**********************************************************\n")

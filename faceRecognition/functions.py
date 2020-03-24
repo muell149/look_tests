@@ -45,13 +45,13 @@ def optimization(A,Y,epsilon,print_proc=False):
    '''
    Solves the following optimization problem
    
-       min      || X ||_1
-        X
+       min      || w ||_1
+        w
       
       
       subject to: 
       
-      AX-Y <= epsilon
+      Bw-Y <= epsilon
       
       where
       
@@ -59,26 +59,37 @@ def optimization(A,Y,epsilon,print_proc=False):
       X = Sparse coeficient vector, we look for it to be zero in
           most of its components, except for the ones
           representing one subject
+      w = Concatenation of X(nx1) with an error vector e(mx1) 
+      B = Concatenation of matrix A(mxn) with the identity I(mxm)
       Y = Image to recognize
    
       ||.||_1   is called the l_1 norm
    '''
+   I = np.asmatrix(np.identity(A.shape[0]))
+
+   B = np.concatenate((A,I),axis=1)
+   
    x_rows = A.shape[1]
    
    # The variable, has to has the same rows as the matrix A
-   X = cp.Variable((x_rows,1)) 
+   w = cp.Variable((x_rows+A.shape[0],1))
 
    # Objective function definition
-   objective = cp.Minimize(cp.norm(X, 1))
+   objective = cp.Minimize(cp.norm(w, 1))
    
    # Constraint definition
-   constraints = [cp.norm(A*X-Y,2)<=epsilon] 
+   constraints = [cp.norm(B*w-Y,2)<=epsilon] 
    
    # Solve problem using cvxpy
    prob = cp.Problem(objective,constraints)
    prob.solve(verbose=print_proc)
 
-   return X.value
+   result = np.split(w.value, [x_rows, x_rows+A.shape[0]])
+
+   X = np.asmatrix(result[0])
+   e = np.asmatrix(result[1])
+
+   return X, e
 
 def deltafunction(class_index,images_per_class,number_classes,X):
    '''
@@ -87,7 +98,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
    with "class_index"
    '''
    
-   m=images_per_class*number_classes
+   m = images_per_class * number_classes
    
    d = np.asmatrix(np.zeros((m,1)))
    
@@ -131,7 +142,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    Y = np.asmatrix(a_resized.flatten('F')).T
    
    # Solve the optimization problem
-   X = optimization(A,Y,epsilon)
+   X, e = optimization(A,Y,epsilon)
 
    delta_l = []
    
@@ -142,7 +153,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    e_r = []
       
    for class_index in range(0,number_classes):
-      e_r.append(np.linalg.norm(Y-A*delta_l[class_index],2))
+      e_r.append(np.linalg.norm(Y-e-A*delta_l[class_index],2))
    
    if plot==True:
       plt.plot(e_r,'o')
