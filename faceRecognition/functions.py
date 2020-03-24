@@ -166,4 +166,5 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
       return np.argmin(e_r)
             
    else:
+      #print("Image is not a person in the dataset")
       return -1

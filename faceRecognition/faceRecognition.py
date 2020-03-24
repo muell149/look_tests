@@ -14,7 +14,7 @@ number_person_testing   = 1140
 epsilon                 = 0.01
 height                  = 12
 width                   = 10
-threshold               = 0.5
+threshold               = 0.2
 directory               = "CroppedYale/*"
 
 A, number_classes, remaining_images = fn.getmatrix(dir = directory, 
@@ -25,11 +25,11 @@ A, number_classes, remaining_images = fn.getmatrix(dir = directory,
 Studies
 '''
 
-individual_test         = True
+individual_test         = False
 image_for_testing       = remaining_images[6][2] # <- In the dataset
 image_for_testing       = "yaleB05/yaleB05_P00A-020E-10.pgm" # <- Not in the dataset
 
-test_accuracy_normal    = False
+test_accuracy_normal    = True
 
 
 #*************************************************************************************
@@ -73,6 +73,7 @@ if test_accuracy_normal:
       testing_images = random.sample(remaining_images[id_number],k=testing_each_class)
 
       for image in testing_images:
+         
          class_image = fn.classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,False)
          
          if class_image == id_number:
@@ -85,14 +86,14 @@ if test_accuracy_normal:
                
          progress = counter*100/number_person_testing
 
-         if progress % 10 == 0:
+         if progress == 0:
+            print("Initializing...")
+         elif progress % 10 == 0:
             print("Overall progress ",progress,"%")
             
          counter = counter + 1
-         
-
       
-   print("\nPercentage of accuracy:", float(i*100/(number_person_testing-len(errors))),"%")
+   print("\nPercentage of accuracy:", float(i*100/number_person_testing),"%")
    
 if indicator==0:
    print("\n\n\nYou have not selected any of the studies")
