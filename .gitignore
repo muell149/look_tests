@@ -3,3 +3,4 @@
 *.LOG
 *.npy
 *pgm.bad
+env/
