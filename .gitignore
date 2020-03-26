@@ -4,3 +4,4 @@
 *.npy
 *pgm.bad
 look/
+*.pyc
