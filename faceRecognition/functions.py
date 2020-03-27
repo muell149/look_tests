@@ -213,7 +213,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
       #print("Image is not a person in the dataset")
       return -1
 
-def classifytest(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot):
+def classifyCutImages(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot):
    '''
    Function to classify image.
    '''

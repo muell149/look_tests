@@ -21,22 +21,23 @@ directory               = "CroppedYale/*"
 
 
 
-A, number_classes, remaining_images = fn.getmatrixes(dir = directory,images_per_class = images_per_class,height = height, width = width,vertical=vertical,horizontal=horizontal)
-
-
 '''
 Studies
 '''
-
-individual_test         = False
-image_for_testing       = remaining_images[19][6] # <- In the dataset
-
-#image_for_testing       = "yaleB05/yaleB05_P00A-020E-10.pgm" # <- Not in the dataset
-
 test_accuracy_normal    = False
 test_cut_image          = True
+individual_test         = False
+
+subject_test,num_im     = 19,8
 
 
+
+if test_cut_image:
+   A, number_classes, remaining_images = fn.getmatrixes(dir = directory,images_per_class = images_per_class,height = height, width = width,vertical=vertical,horizontal=horizontal)
+else:
+   A, number_classes, remaining_images = fn.getmatrix(dir = directory,images_per_class = images_per_class,height = height, width = width)
+
+image_for_testing       = remaining_images[subject_test][num_im] # <- In the dataset
 
 
 '''
@@ -50,7 +51,7 @@ if test_cut_image:
    print("*       Start test for an individual image (cut)...      *")   
    print("**********************************************************\n")
 
-   class_image = fn.classifytest(image_for_testing,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot=True)
+   class_image = fn.classifyCutImages(image_for_testing,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot=False)
 
    if class_image == -1:
       print("Image is not a subject in the dataset")
