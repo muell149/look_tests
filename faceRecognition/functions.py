@@ -172,7 +172,7 @@ def sci(x,delta_l):
    
    return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
 
-def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,plot):
+def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,plotting):
    '''
    Function to classify image.
    '''
@@ -199,7 +199,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    for class_index in range(0,number_classes):
       e_r.append(np.linalg.norm(Y-e-A*delta_l[class_index],2))
    
-   if plot==True:
+   if plotting==True:
       plt.plot(e_r,'o')
       plt.xlabel("Subject")
       plt.ylabel(r"Error $||y-A\delta_i||_2$")
@@ -213,7 +213,7 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
       #print("Image is not a person in the dataset")
       return -1
 
-def classifyCutImages(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot):
+def classifyCutImages(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plotting):
    '''
    Function to classify image.
    '''
@@ -255,7 +255,7 @@ def classifyCutImages(image,width,height,vertical,horizontal,number_classes,imag
       for class_index in range(0,number_classes):
          e_r.append(np.linalg.norm(Y[i]-e[i]-A[i]*delta_l[class_index],2))
       
-      if plot==True:
+      if plotting==True:
          plt.plot(e_r,'o')
          plt.xlabel("Subject")
          plt.ylabel(r"Error $||y-A\delta_i||_2$")

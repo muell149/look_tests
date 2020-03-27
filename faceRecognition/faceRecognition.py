@@ -26,9 +26,9 @@ Studies
 '''
 test_accuracy_normal    = False
 test_cut_image          = True
-individual_test         = False
+test_image              = False
 
-subject_test,num_im     = 19,8
+subject_test,num_im     = 30,8
 
 
 
@@ -51,7 +51,7 @@ if test_cut_image:
    print("*       Start test for an individual image (cut)...      *")   
    print("**********************************************************\n")
 
-   class_image = fn.classifyCutImages(image_for_testing,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot=False)
+   class_image = fn.classifyCutImages(image_for_testing,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plotting=False)
 
    if class_image == -1:
       print("Image is not a subject in the dataset")
@@ -63,7 +63,7 @@ if test_cut_image:
 TEST FOR AN INDIVIDUAL IMAGE
 '''
 
-if individual_test:
+if test_image:
    indicator = 1
    print("**********************************************************")
    print("*         Start test for an individual image...          *")   
