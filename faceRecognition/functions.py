@@ -3,11 +3,55 @@ import cvxpy as cp
 import matplotlib.pyplot as plt
 import sys
 import cv2
+from collections import Counter
 from sklearn.preprocessing import normalize
 from sklearn import random_projection
 import glob
 import time
 import random
+
+def getmatrixes(dir,images_per_class,height,width,vertical,horizontal):
+
+   # Store the path to the images for each subject
+   images_subjects = []
+   for directory in glob.glob(dir):
+      images_subjects.append(glob.glob(directory+"/*.pgm"))
+
+   number_classes = len(images_subjects)
+
+   A = [[] for i in range(vertical*horizontal)]
+   A_matrix = [[] for i in range(vertical*horizontal)]
+
+   for id_number in range(number_classes):
+
+      for im in random.sample(images_subjects[id_number],k=images_per_class):
+
+         a = cv2.imread(im,0)
+
+         a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
+
+         ver_pixels = int(a_resized.shape[0]/vertical)
+         hor_pixels = int(a_resized.shape[1]/horizontal)
+
+         index = 0
+         for i in range(vertical):
+            for j in range(horizontal):
+               cut_part = a_resized[ver_pixels*i:ver_pixels*(i+1),hor_pixels*j:hor_pixels*(j+1)]
+
+               A[index].append(cut_part.flatten('F'))
+
+               index = index + 1
+
+         images_subjects[id_number].remove(im)
+
+   for i in range(vertical*horizontal):
+      A_matrix[i] = np.asmatrix(normalize(np.asmatrix(A[i]).T,axis=0,norm='l2'))
+
+   print("\n Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.\n")
+   print(" Size of each image is",height,"x",width,"and they have\n been cut into",horizontal*vertical,"parts\n")
+
+   return A_matrix, number_classes, images_subjects
+
 
 def getmatrix(dir,images_per_class,height,width):
 
@@ -168,3 +212,61 @@ def classify(image,width,height,number_classes,images_per_class,A,epsilon,thresh
    else:
       #print("Image is not a person in the dataset")
       return -1
+
+def classifytest(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot):
+   '''
+   Function to classify image.
+   '''
+   
+   a = cv2.imread(image,0)
+   
+   # Original image is resized 
+   a_resized = cv2.resize(a,(width,height),interpolation=cv2.INTER_AREA)
+   
+   Y = []
+   
+   ver_pixels = int(a_resized.shape[0]/vertical)
+   hor_pixels = int(a_resized.shape[1]/horizontal)
+
+   for i in range(vertical):
+      for j in range(horizontal):
+         cut_part = a_resized[ver_pixels*i:ver_pixels*(i+1),hor_pixels*j:hor_pixels*(j+1)]
+
+         Y.append(np.asmatrix(cut_part.flatten('F')).T)
+
+   # Solve the optimization problem
+   X = [[] for i in range(vertical*horizontal)]
+   e = [[] for i in range(vertical*horizontal)]
+   
+   votation = []
+
+   for i in range(vertical*horizontal):
+
+      X[i], e[i] = optimization(A[i],Y[i],epsilon,print_proc=False)
+
+      delta_l = []
+      
+      for class_index in range(1,number_classes+1):
+         X_g = deltafunction(class_index,images_per_class,number_classes,X[i])
+         delta_l.append(X_g)
+      
+      e_r = []
+         
+      for class_index in range(0,number_classes):
+         e_r.append(np.linalg.norm(Y[i]-e[i]-A[i]*delta_l[class_index],2))
+      
+      if plot==True:
+         plt.plot(e_r,'o')
+         plt.xlabel("Subject")
+         plt.ylabel(r"Error $||y-A\delta_i||_2$")
+         plt.grid()
+         plt.show()
+      
+      if sci(X[i],delta_l) >= threshold:      
+         votation.append(np.argmin(e_r))
+               
+      else:
+         #print("Image is not a person in the dataset")
+         votation.append(-1)
+
+   return max(votation,key=votation.count)

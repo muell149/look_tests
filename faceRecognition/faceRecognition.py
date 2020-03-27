@@ -12,27 +12,51 @@ Set variables
 images_per_class        = 30
 number_person_testing   = 1140
 epsilon                 = 0.01
-height                  = 12
-width                   = 10
-threshold               = 0.5
+height                  = 12                    
+width                   = 10                    
+threshold               = 0.1
+vertical                = 4                     # Has to be an even number
+horizontal              = 2                     # Has to be an even number
 directory               = "CroppedYale/*"
 
-A, number_classes, remaining_images = fn.getmatrix(dir = directory, 
-                                                   images_per_class = images_per_class,height = height, width = width)
+
+
+A, number_classes, remaining_images = fn.getmatrixes(dir = directory,images_per_class = images_per_class,height = height, width = width,vertical=vertical,horizontal=horizontal)
 
 
 '''
 Studies
 '''
 
-individual_test         = True
-#image_for_testing       = remaining_images[6][2] # <- In the dataset
-image_for_testing       = "yaleB05/yaleB05_P00A-020E-10.pgm" # <- Not in the dataset
+individual_test         = False
+image_for_testing       = remaining_images[19][6] # <- In the dataset
+
+#image_for_testing       = "yaleB05/yaleB05_P00A-020E-10.pgm" # <- Not in the dataset
 
 test_accuracy_normal    = False
+test_cut_image          = True
 
 
-#*************************************************************************************
+
+
+'''
+TEST FOR AN INDIVIDUAL IMAGE (cut)
+'''
+
+if test_cut_image:
+   indicator = 1
+
+   print("**********************************************************")
+   print("*       Start test for an individual image (cut)...      *")   
+   print("**********************************************************\n")
+
+   class_image = fn.classifytest(image_for_testing,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,plot=True)
+
+   if class_image == -1:
+      print("Image is not a subject in the dataset")
+   else:
+      print("Image was classified as subject ",class_image)
+   print("\n\n\n")
 
 '''
 TEST FOR AN INDIVIDUAL IMAGE
@@ -41,11 +65,11 @@ TEST FOR AN INDIVIDUAL IMAGE
 if individual_test:
    indicator = 1
    print("**********************************************************")
-   print("*             Start test for an individual...            *")   
+   print("*         Start test for an individual image...          *")   
    print("**********************************************************\n")
    class_image = fn.classify(image_for_testing,width,height,
                              number_classes,images_per_class,
-                             A,epsilon,threshold,True)
+                             A,epsilon,threshold,plotting=True)
    
    if class_image == -1:
       print("Image is not a subject in the dataset")
@@ -97,3 +121,4 @@ if test_accuracy_normal:
    
 if indicator==0:
    print("\n\n\nYou have not selected any of the studies")
+
