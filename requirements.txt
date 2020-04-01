@@ -3,3 +3,4 @@ matplotlib
 numpy
 cvxpy
 scikit-learn
+dlib
