@@ -37,6 +37,8 @@ class DataSet:
                     print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
                     for a in aligned_images:
                         A.append(a.flatten("F"))
+            else:
+                self.test_images_unknown.append(random.choice(images))
 
         self.matrix = normalize(np.asmatrix(A).T, axis=0, norm="l2")
         self.number_classes = int(self.matrix.shape[1]/self.images_per_class)
