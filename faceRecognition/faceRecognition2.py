@@ -1,3 +1,4 @@
+import cv2
 import random
 
 from functions2 import DataSet
@@ -6,7 +7,7 @@ from functions2 import DataSet
 def main():
     directory               = "datasets/lfw/*"
     extension               = "jpg"
-    images_per_class        = 40
+    images_per_class        = 50
     width                   = 10*2
     height                  = 12*2
     vertical                = 4                     # Has to be an even number
@@ -28,15 +29,19 @@ def main():
     )
 
     print("Testing known images")
-    for test_known in ds.test_images_known:
-        test_res = ds.classify(test_known, plot=False)
-        print(test_res)
+    print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+    print("------------------------------|-------------------------------|----------")
+    for i, test_known in enumerate(ds.test_images_known):
+        test_res = ds.classify(test_known)
+        result = "correct" if test_res == i else "incorrect"
+        print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
 
-    print("Testing unknown images")
-    for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
-        test_res = ds.classify(test_unknown, plot=False)
-        print(test_res)
+    # print("Testing unknown images")
+    # for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
+    #     test_res = ds.classify(test_unknown, plot=False)
+    #     print(test_res)
 
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

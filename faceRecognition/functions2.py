@@ -1,3 +1,4 @@
+import cv2
 import glob
 import random
 import numpy as np
@@ -14,6 +15,7 @@ class DataSet:
         self.test_images_known = []
         self.test_images_unknown = []
         self.number_classes = 0
+        self.classes = {}
 
         self.vis = vis
         self.height = height
@@ -28,7 +30,9 @@ class DataSet:
         self.threshold = threshold
 
         A = [[] for i in range(vertical*horizontal)]
-        for directory in glob.glob(dir):
+        all_subjects = glob.glob(dir)
+        for idx, directory in enumerate(all_subjects):
+            print("Generating matrices... {:<5}%".format(round(100*idx/len(all_subjects), 2)), end="\r")
             images = glob.glob(directory + "/*." + ext)
 
             if len(images) > images_per_class:
@@ -39,10 +43,10 @@ class DataSet:
                 if any(a is None for a in aligned_images):
                     continue
                 else:
+                    self.classes[self.number_classes] = directory.split("/")[-1]
                     self.number_classes += 1
-
                     self.test_images_known.append(test_image)
-                    print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
+                    # print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
                     for aligned in aligned_images:
                         # A.append(a.flatten("F"))
                         matrices_index = 0
@@ -58,11 +62,15 @@ class DataSet:
         self.matrices = [np.asmatrix(normalize(np.asmatrix(a).T, axis=0, norm="l2")) for a in A]
 
 
-    def classify(self, image, plot=True):
+    def classify(self, image, plot=False, vis=False):
         aligned = detect_and_align(image, self.width, self.height)
         if aligned is None:
             print("No face detected")
             return None
+
+        if vis:
+            cv2.imshow("aligned", aligned)
+            key = cv2.waitKey(0)
 
         Y = []          # Y = np.asmatrix(aligned.flatten("F")).T
         for r in range(0, self.height, self.ver_pixels):
@@ -97,7 +105,6 @@ class DataSet:
 
             if sci(X[i], delta_l) >= self.threshold:
                 votation.append(np.argmin(e_r))
-
             else:
                 votation.append(-1)
 
