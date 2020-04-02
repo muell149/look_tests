@@ -9,12 +9,13 @@ from sklearn.preprocessing import normalize
 from matplotlib import pyplot as plt
 
 class DataSet:
-    def __init__(self, dir, ext, images_per_class, height, width, epsilon, threshold):
+    def __init__(self, dir, ext, images_per_class, height, width, epsilon, threshold, vis):
         # images_subjects = []
 
         self.test_images_known = []
         self.test_images_unknown = []
 
+        self.vis = vis
         self.height = height
         self.width = width
         self.images_per_class = images_per_class
@@ -28,12 +29,13 @@ class DataSet:
 
             if len(images) > images_per_class:
                 subject_images_sample = random.sample(images, k=images_per_class+1)
-                self.test_images_known.append(subject_images_sample.pop())
+                test_image = subject_images_sample.pop()
 
-                aligned_images = [detect_and_align(im, width, height) for im in subject_images_sample]
+                aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in subject_images_sample]
                 if any(a is None for a in aligned_images):
                     continue
                 else:
+                    self.test_images_known.append(test_image)
                     print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
                     for a in aligned_images:
                         A.append(a.flatten("F"))
