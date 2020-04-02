@@ -5,8 +5,12 @@ from lib.FaceDetector import FaceDetectorDlib
 
 detector = FaceDetectorDlib()
 
-def detect_and_align(path, w=10, h=12):
+def detect_and_align(path, w=10, h=12, vis=False):
     image = cv2.imread(path, 1)                 # Read as BGR image
+
+    if vis:
+        cv2.imshow("image", image)
+        key = cv2.waitKey(1)
 
     box = detector.detect(image)
     if len(box) is 0:
@@ -17,7 +21,8 @@ def detect_and_align(path, w=10, h=12):
     crop = get_aligned_face(image, box, w, h)
     graycrop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
 
-    # cv2.imshow("crop", graycrop)
-    # key = cv2.waitKey(0)
+    if vis:
+        cv2.imshow("crop", graycrop)
+        key = cv2.waitKey(1)
 
     return graycrop
