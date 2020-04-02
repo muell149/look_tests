@@ -3,7 +3,7 @@
 *.LOG
 *.npy
 *pgm.bad
-env/*
+env/
 *.pyc
 *.dat
 faceRecognition/datasets/
