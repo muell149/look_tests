@@ -1,4 +1,3 @@
-import cv2
 import glob
 import random
 import numpy as np
@@ -9,21 +8,26 @@ from sklearn.preprocessing import normalize
 from matplotlib import pyplot as plt
 
 class DataSet:
-    def __init__(self, dir, ext, images_per_class, height, width, epsilon, threshold, vis):
+    def __init__(self, dir, ext, images_per_class, height, width, vertical, horizontal, epsilon, threshold, vis):
         # images_subjects = []
 
         self.test_images_known = []
         self.test_images_unknown = []
+        self.number_classes = 0
 
         self.vis = vis
         self.height = height
         self.width = width
+        self.vertical = vertical
+        self.horizontal = horizontal
+        self.ver_pixels = int(height/vertical)
+        self.hor_pixels = int(width/horizontal)
         self.images_per_class = images_per_class
 
         self.epsilon = epsilon
         self.threshold = threshold
 
-        A = []
+        A = [[] for i in range(vertical*horizontal)]
         for directory in glob.glob(dir):
             images = glob.glob(directory + "/*." + ext)
 
@@ -35,15 +39,23 @@ class DataSet:
                 if any(a is None for a in aligned_images):
                     continue
                 else:
+                    self.number_classes += 1
+
                     self.test_images_known.append(test_image)
                     print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
-                    for a in aligned_images:
-                        A.append(a.flatten("F"))
+                    for aligned in aligned_images:
+                        # A.append(a.flatten("F"))
+                        matrices_index = 0
+                        for r in range(0, self.height, self.ver_pixels):
+                            for c in range(0, self.width, self.hor_pixels):
+                                cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                                A[matrices_index].append(cut.flatten("F"))
+                                matrices_index += 1
+
             else:
                 self.test_images_unknown.append(random.choice(images))
 
-        self.matrix = normalize(np.asmatrix(A).T, axis=0, norm="l2")
-        self.number_classes = int(self.matrix.shape[1]/self.images_per_class)
+        self.matrices = [np.asmatrix(normalize(np.asmatrix(a).T, axis=0, norm="l2")) for a in A]
 
 
     def classify(self, image, plot=True):
@@ -52,32 +64,44 @@ class DataSet:
             print("No face detected")
             return None
 
-        Y = np.asmatrix(aligned.flatten("F")).T
+        Y = []          # Y = np.asmatrix(aligned.flatten("F")).T
+        for r in range(0, self.height, self.ver_pixels):
+            for c in range(0, self.width, self.hor_pixels):
+                cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                Y.append(np.asmatrix(cut.flatten("F")).T)
 
-        X, e = optimization(self.matrix, Y, self.epsilon)
 
-        delta_l = []
-        for class_index in range(1, self.number_classes+1):
-            X_g = deltafunction(class_index, self.images_per_class, self.number_classes, X)
-            delta_l.append(X_g)
+        # X, e = optimization(self.matrix, Y, self.epsilon)
+        X = [[] for i in range(self.vertical*self.horizontal)]
+        e = [[] for i in range(self.vertical*self.horizontal)]
+        votation = []
 
-        e_r = []
-        for class_index in range(0, self.number_classes):
-            e_r.append(np.linalg.norm(Y-e-self.matrix*delta_l[class_index], 2))
+        for i in range(self.vertical*self.horizontal):
+            X[i], e[i] = optimization(self.matrices[i], Y[i], self.epsilon, print_proc=False)
 
-        if plot==True:
-            plt.plot(e_r,'o')
-            plt.xlabel("Subject")
-            plt.ylabel(r"Error $||y-A\delta_i||_2$")
-            plt.grid()
-            plt.show()
+            delta_l = []
+            for class_index in range(1, self.number_classes+1):
+                X_g = deltafunction(class_index, self.images_per_class, self.number_classes, X[i])
+                delta_l.append(X_g)
 
-        if sci(X, delta_l) >= self.threshold:
-            return np.argmin(e_r)
+            e_r = []
+            for class_index in range(0, self.number_classes):
+                e_r.append(np.linalg.norm(Y[i]-e[i]-self.matrices[i]*delta_l[class_index], 2))
 
-        else:
-            #print("Image is not a person in the dataset")
-            return -1
+            if plot:
+                plt.plot(e_r,'o')
+                plt.xlabel("Subject")
+                plt.ylabel(r"Error $||y-A\delta_i||_2$")
+                plt.grid()
+                plt.show()
+
+            if sci(X[i], delta_l) >= self.threshold:
+                votation.append(np.argmin(e_r))
+
+            else:
+                votation.append(-1)
+
+        return max(votation, key=votation.count)
 
 
 def optimization(A, Y, epsilon, print_proc=False):

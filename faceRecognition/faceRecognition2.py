@@ -1,30 +1,41 @@
-import functions2 as fn
+import random
+
+from functions2 import DataSet
+
 
 def main():
     directory               = "datasets/lfw/*"
     extension               = "jpg"
-    images_per_class        = 60
+    images_per_class        = 40
     width                   = 10*2
     height                  = 12*2
+    vertical                = 4                     # Has to be an even number
+    horizontal              = 2                     # Has to be an even number
     epsilon                 = 0.01
     threshold               = 0.1
 
-    ds = fn.DataSet(
+    ds = DataSet(
         dir=directory,
         ext=extension,
         images_per_class=images_per_class,
         width=width,
         height=height,
+        vertical=vertical,
+        horizontal=horizontal,
         epsilon=epsilon,
         threshold=threshold,
-        vis=True
+        vis=False
     )
 
-
+    print("Testing known images")
     for test_known in ds.test_images_known:
         test_res = ds.classify(test_known, plot=False)
         print(test_res)
 
+    print("Testing unknown images")
+    for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
+        test_res = ds.classify(test_unknown, plot=False)
+        print(test_res)
 
 
 
