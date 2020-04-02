@@ -1,14 +1,13 @@
 import functions2 as fn
 
 def main():
-    images_per_class        = 60
-    # number_person_testing   = 1140
-    epsilon                 = 0.01
-    height                  = 12*2
-    width                   = 10*2
-    threshold               = 0.5
-    directory               = "lfw/*"
+    directory               = "datasets/lfw/*"
     extension               = "jpg"
+    images_per_class        = 60
+    width                   = 10*2
+    height                  = 12*2
+    epsilon                 = 0.01
+    threshold               = 0.1
 
     ds = fn.DataSet(
         dir=directory,
@@ -17,12 +16,13 @@ def main():
         width=width,
         height=height,
         epsilon=epsilon,
-        threshold=threshold
+        threshold=threshold,
+        vis=True
     )
 
 
     for test_known in ds.test_images_known:
-        test_res = ds.classify(test_known)
+        test_res = ds.classify(test_known, plot=False)
         print(test_res)
 
 
