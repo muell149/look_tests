@@ -34,7 +34,11 @@ def main():
     for i, test_known in enumerate(ds.test_images_known):
         test_res = ds.classify(test_known)
         result = "correct" if test_res == i else "incorrect"
-        print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
+        if test_res == -1:
+            class_result = "* UNKNOWN *"
+        else:
+            class_result = ds.classes[test_res]
+        print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], class_result, result))
 
     # print("Testing unknown images")
     # for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
