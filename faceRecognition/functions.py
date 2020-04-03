@@ -270,10 +270,14 @@ def classifyCutImages(image,width,height,vertical,horizontal,number_classes,imag
             votation.append(np.argmin(e_r))
 
         else:
-            #print("Image is not a person in the dataset")
             votation.append(-1)
 
     if printvotation:
         print("Votation distribution: ",votation,"\n")
 
-    return max(votation,key=votation.count)
+    most_common = max(votation,key=votation.count)
+
+    if votation.count(most_common)<2:
+        return -1
+    else:
+        return most_common
