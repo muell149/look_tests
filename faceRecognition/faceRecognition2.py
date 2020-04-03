@@ -29,7 +29,7 @@ def main():
         vis=False
     )
 
-    print("Testing known images")
+    print("\nTesting known images\n")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
     for i, test_known in enumerate(ds.test_images_known):
@@ -37,12 +37,12 @@ def main():
 
         if test_res==-1:
             result = "incorrect"
-            print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], "Not in dataset", result))
+            print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], "* NOT IN DB *", result))
         else:
             result = "correct" if test_res == i else "incorrect"
             print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
 
-    print("Testing unknown images")
+    print("\n\nTesting unknown images\n")
     for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
         test_res = ds.classify(test_unknown, plot=False)
         print(test_res)
