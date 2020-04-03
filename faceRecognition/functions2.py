@@ -65,7 +65,6 @@ class DataSet:
     def classify(self, image, plot=False, vis=False):
         aligned = detect_and_align(image, self.width, self.height)
         if aligned is None:
-            print("No face detected")
             return None
 
         if vis:

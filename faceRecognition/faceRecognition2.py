@@ -38,6 +38,8 @@ def main():
         if test_res==-1:
             result = "incorrect"
             print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], "* NOT IN DB *", result))
+        elif test_res is None:
+            print("{:<30}| {:<30}|".format(ds.classes[i], "* NO FACE FOUND *"))
         else:
             result = "correct" if test_res == i else "incorrect"
             print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
