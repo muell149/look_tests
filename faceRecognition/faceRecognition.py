@@ -12,13 +12,13 @@ Set variables
 
 images_per_class        = 15
 number_person_testing   = 1140
-epsilon                 = 0.01
-height                  = 12                    
-width                   = 10                    
-threshold               = 0.1
+epsilon                 = 0.001
+height                  = 18                   
+width                   = 15                
+threshold               = 0.25
 vertical                = 4                     # Has to be an even number
 horizontal              = 2                     # Has to be an even number
-directory               = "../../CroppedYale/*"
+directory               = "datasets/CroppedYale/*"
 
 
 
@@ -32,10 +32,10 @@ test_image              = False
 
 
 # Individual part
-subject_test,num_im     = 15,21
+subject_test,num_im     = 14,11
 ploterr                 = False
 printvotation           = True
-plotimage               = True
+plotimage               = False
 
 
 if test_cut_image:
@@ -45,7 +45,7 @@ else:
 
 image_for_testing = remaining_images[subject_test][num_im] # <- Comment this an add the direction of the image you want to test for an unknown image
 
-#image_for_testing = '../../CroppedYale/yaleB32/yaleB32_P00A-020E-10.pgm'
+#image_for_testing = 'datasets/yaleB36/yaleB36_P00A-110E+65.pgm'
 #image_for_testing = 'occludetestglasses.pgm'
 #image_for_testing = 'occludetestscarf.pgm'
 

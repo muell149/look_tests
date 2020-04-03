@@ -108,7 +108,12 @@ class DataSet:
             else:
                 votation.append(-1)
 
-        return max(votation, key=votation.count)
+        most_common = max(votation,key=votation.count)
+
+        if votation.count(most_common)<2:
+            return -1
+        else:
+            return most_common
 
 
 def optimization(A, Y, epsilon, print_proc=False):
