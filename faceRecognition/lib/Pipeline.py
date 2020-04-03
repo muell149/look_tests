@@ -1,9 +1,9 @@
 import cv2
 
 from lib.FaceAlign import get_aligned_face
-from lib.FaceDetector import FaceDetectorDlib
+from lib.FaceDetector import FaceDetectorDlib, FaceDetectorHaar
 
-detector = FaceDetectorDlib()
+detector = FaceDetectorHaar()
 
 def detect_and_align(path, w=10, h=12, vis=False):
     image = cv2.imread(path, 1)                 # Read as BGR image
