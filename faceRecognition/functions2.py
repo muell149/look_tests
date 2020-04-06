@@ -32,33 +32,47 @@ class DataSet:
         A = [[] for i in range(vertical*horizontal)]
         all_subjects = glob.glob(dir)
         for idx, directory in enumerate(all_subjects):
-            print("Generating matrices... {:<5}%".format(round(100*idx/len(all_subjects), 2)), end="\r")
-            images = glob.glob(directory + "/*." + ext)
+            print("Generating matrices: {:<6}%  |  Classes found: {:<3}".format(round(100*idx/len(all_subjects), 2), self.number_classes), end="\r")
+            all_images = glob.glob(directory + "/*." + ext)
 
-            if len(images) > images_per_class:
-                subject_images_sample = random.sample(images, k=images_per_class+1)
-                test_image = subject_images_sample.pop()
+            aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in all_images]
+            indices = [i for i, al in enumerate(aligned_images) if al is not None]
+            if not indices:
+                continue
 
-                aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in subject_images_sample]
-                if any(a is None for a in aligned_images):
-                    continue
-                else:
-                    self.classes[self.number_classes] = directory.split("/")[-1]
-                    self.number_classes += 1
-                    self.test_images_known.append(test_image)
-                    # print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
-                    for aligned in aligned_images:
-                        # A.append(a.flatten("F"))
-                        matrices_index = 0
-                        for r in range(0, self.height, self.ver_pixels):
-                            for c in range(0, self.width, self.hor_pixels):
-                                cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
-                                A[matrices_index].append(cut.flatten("F"))
-                                matrices_index += 1
+            # images = [im for i, im in enumerate(all_images) if i in indices]
+
+            if len(indices) > images_per_class:
+                # subject_images_sample = random.sample(images, k=images_per_class+1)
+                sample_indices = random.sample(indices, k=images_per_class+1)
+                sample_aligned_images = [al for i, al in enumerate(aligned_images) if i in sample_indices]
+                sample_images = [im for i, im in enumerate(all_images) if i in sample_indices]
+
+                test_image = sample_images.pop()
+                test_aligned_image = sample_aligned_images.pop()
+
+                # aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in subject_images_sample]
+                # if any(a is None for a in aligned_images):
+                #     continue
+                # else:
+
+                self.classes[self.number_classes] = directory.split("/")[-1]
+                self.number_classes += 1
+                self.test_images_known.append(test_image)
+                # print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
+                for aligned in sample_aligned_images:
+                    # A.append(a.flatten("F"))
+                    matrices_index = 0
+                    for r in range(0, self.height, self.ver_pixels):
+                        for c in range(0, self.width, self.hor_pixels):
+                            cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                            A[matrices_index].append(cut.flatten("F"))
+                            matrices_index += 1
 
             else:
-                self.test_images_unknown.append(random.choice(images))
+                self.test_images_unknown.append(all_images[random.choice(indices)])
 
+        print("\n")
         self.matrices = [np.asmatrix(normalize(np.asmatrix(a).T, axis=0, norm="l2")) for a in A]
 
 
