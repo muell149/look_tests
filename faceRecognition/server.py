@@ -32,9 +32,7 @@ def index():
 
 @app.route("/info", methods=["GET"])
 def info():
-    return json.dumps({
-        "number_classes": DS.number_classes
-    })
+    return jsonify(DS.classes)
 
 
 if __name__ == "__main__":

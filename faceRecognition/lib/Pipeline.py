@@ -1,15 +1,23 @@
 import cv2
+import logging
 import numpy as np
 
 from lib.FaceAlign import get_aligned_face
 from lib.FaceDetector import FaceDetectorDlib, FaceDetectorHaar
+
+logging.basicConfig(level=logging.INFO)
 
 # detector = FaceDetectorHaar()
 detector = FaceDetectorDlib()
 
 def detect_and_align(im, w=10, h=12, vis=False):
     if isinstance(im, str):
-        image = cv2.imread(im, 1)                 # Read as BGR image
+        try:
+            image = cv2.imread(im, 1)                 # Read as BGR image
+        except:
+            logging.error("Image type not supported")
+            return None
+
     elif isinstance(im, np.ndarray):
         image = im
 
