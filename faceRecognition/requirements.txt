@@ -4,3 +4,4 @@ numpy
 cvxpy
 scikit-learn
 dlib
+flask
