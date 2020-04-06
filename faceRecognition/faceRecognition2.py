@@ -1,32 +1,35 @@
 import cv2
 import random
+import argparse
 
 from functions2 import DataSet
 
 random.seed(13)
 
 def main():
-    directory               = "datasets/lfw/*"
-    extension               = "jpg"
-    images_per_class        = 50
-    width                   = 10*2
-    height                  = 12*2
-    vertical                = 4                     # Has to be an even number
-    horizontal              = 2                     # Has to be an even number
-    epsilon                 = 0.0
-    threshold               = 0.22
-    vis                     = True
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory",        "-dir", help="Dataset directory",        type=str,   default="datasets/lfw/*")
+    parser.add_argument("--extension",        "-ext", help="Dataset images extension", type=str,   default="jpg")
+    parser.add_argument("--images_per_class", "-ipc", help="Images to use per class",  type=int,   default=20)
+    parser.add_argument("--width",            "-wi",  help="Image width",              type=int,   default=10)
+    parser.add_argument("--height",           "-he",  help="Image height",             type=int,   default=12)
+    parser.add_argument("--vertical",         "-ve",  help="Vertical splits",          type=int,   default=4)
+    parser.add_argument("--horizontal",       "-ho",  help="Horizontal splits",        type=int,   default=2)
+    parser.add_argument("--epsilon",          "-e",   help="Epsilon",                  type=float, default=0.0)
+    parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.22)
+    args = parser.parse_args()
+    vis = False
 
     ds = DataSet(
-        dir=directory,
-        ext=extension,
-        images_per_class=images_per_class,
-        width=width,
-        height=height,
-        vertical=vertical,
-        horizontal=horizontal,
-        epsilon=epsilon,
-        threshold=threshold,
+        dir=args.directory,
+        ext=args.extension,
+        images_per_class=args.images_per_class,
+        width=args.width,
+        height=args.height,
+        vertical=args.vertical,
+        horizontal=args.horizontal,
+        epsilon=args.epsilon,
+        threshold=args.threshold,
         vis=vis
     )
 
