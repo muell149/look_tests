@@ -1,12 +1,17 @@
 import cv2
+import numpy as np
 
 from lib.FaceAlign import get_aligned_face
 from lib.FaceDetector import FaceDetectorDlib, FaceDetectorHaar
 
-detector = FaceDetectorHaar()
+# detector = FaceDetectorHaar()
+detector = FaceDetectorDlib()
 
-def detect_and_align(path, w=10, h=12, vis=False):
-    image = cv2.imread(path, 1)                 # Read as BGR image
+def detect_and_align(im, w=10, h=12, vis=False):
+    if isinstance(im, str):
+        image = cv2.imread(im, 1)                 # Read as BGR image
+    elif isinstance(im, np.ndarray):
+        image = im
 
     if vis:
         cv2.imshow("image", image)
