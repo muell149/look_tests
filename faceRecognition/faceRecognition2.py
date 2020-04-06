@@ -15,6 +15,7 @@ def main():
     horizontal              = 2                     # Has to be an even number
     epsilon                 = 0.0
     threshold               = 0.22
+    vis                     = True
 
     ds = DataSet(
         dir=directory,
@@ -26,14 +27,14 @@ def main():
         horizontal=horizontal,
         epsilon=epsilon,
         threshold=threshold,
-        vis=False
+        vis=vis
     )
 
     print("\nTesting known images\n")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
     for i, test_known in enumerate(ds.test_images_known):
-        test_res = ds.classify(test_known)
+        test_res = ds.classify(test_known, vis=vis)
 
         if test_res==-1:
             result = "incorrect"
@@ -45,9 +46,15 @@ def main():
             print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
 
     print("\n\nTesting unknown images\n")
-    for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
-        test_res = ds.classify(test_unknown, plot=False)
-        print(test_res)
+    if len(ds.test_images_unknown) >= len(ds.test_images_known):
+        for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
+            test_res = ds.classify(test_unknown, plot=False, vis=vis)
+            print(test_res)
+    else:
+        for test_unknown in ds.test_images_unknown:
+            test_res = ds.classify(test_unknown, plot=False, vis=vis)
+            print(test_res)
+
 
     cv2.destroyAllWindows()
 

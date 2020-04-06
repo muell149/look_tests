@@ -40,10 +40,7 @@ class DataSet:
             if not indices:
                 continue
 
-            # images = [im for i, im in enumerate(all_images) if i in indices]
-
             if len(indices) > images_per_class:
-                # subject_images_sample = random.sample(images, k=images_per_class+1)
                 sample_indices = random.sample(indices, k=images_per_class+1)
                 sample_aligned_images = [al for i, al in enumerate(aligned_images) if i in sample_indices]
                 sample_images = [im for i, im in enumerate(all_images) if i in sample_indices]
@@ -51,17 +48,11 @@ class DataSet:
                 test_image = sample_images.pop()
                 test_aligned_image = sample_aligned_images.pop()
 
-                # aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in subject_images_sample]
-                # if any(a is None for a in aligned_images):
-                #     continue
-                # else:
-
                 self.classes[self.number_classes] = directory.split("/")[-1]
                 self.number_classes += 1
                 self.test_images_known.append(test_image)
-                # print("{:<50} | {:<5}".format(directory.split("/")[-1], len(images)))
+
                 for aligned in sample_aligned_images:
-                    # A.append(a.flatten("F"))
                     matrices_index = 0
                     for r in range(0, self.height, self.ver_pixels):
                         for c in range(0, self.width, self.hor_pixels):
@@ -121,7 +112,7 @@ class DataSet:
             else:
                 votation.append(-1)
 
-        most_common = max(votation,key=votation.count)
+        most_common = int(max(votation,key=votation.count))
 
         if votation.count(most_common)<2:
             return -1
