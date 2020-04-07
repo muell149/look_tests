@@ -25,7 +25,7 @@ class FaceDetectorHaar:
     detección.
     """
     def __init__(self, amp=0.35):
-        self.face_cascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+        self.face_cascade = cv2.CascadeClassifier('lib/models/haarcascade_frontalface_default.xml')
         self.amp = amp
 
     def detect(self, image):
