@@ -50,11 +50,11 @@ TEMPLATE = np.float32([
 
 TPL_MIN, TPL_MAX = np.min(TEMPLATE, axis=0), np.max(TEMPLATE, axis=0)
 MINMAX_TEMPLATE = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
-predictor = dlib.shape_predictor('lib/models/landmarks.dat')
+predictor = dlib.shape_predictor('models/landmarks.dat')
 
 def rect(box):
-    (a, b), (c, d) = box
-    return dlib.rectangle(a, b, c, d)
+    [a, b, c, d] = box
+    return dlib.rectangle(left=a,top=b,right=a+c,bottom=b+d)
 
 def findLandmarks(rgbImg, bb):
     """
