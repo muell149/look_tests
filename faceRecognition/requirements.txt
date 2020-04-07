@@ -5,3 +5,5 @@ cvxpy
 scikit-learn
 dlib
 flask
+tensorflow
+mtcnn
