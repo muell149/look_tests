@@ -36,3 +36,11 @@ class FaceDetectorHaar:
         clips = [(clip(x-int(w*self.amp),0,imw), clip(y-int(h*self.amp),0,imh), clip(x+w+int(w*self.amp),0,imw), clip(y+h+int(h*self.amp),0,imh)) for (x,y,w,h) in faces]
         return [((l,t), (r,b)) for (l,t,r,b) in clips]
         # return [(((l,t), (r,b)), (slice(t,b), slice(l,r))) for (l,t,r,b) in clips]
+
+
+class FaceDetectorSSD:
+    def __init__(self):
+        pass
+
+    def detect(self, image):
+        pass

@@ -8,8 +8,6 @@ ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 WORKDIR /srv
-# COPY lib/ .
-# COPY server.py .
 COPY . .
 
 EXPOSE 8000
