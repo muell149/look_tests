@@ -120,6 +120,10 @@ class DataSet:
             return most_common
 
 
+    def set_threshold(self, threshold):
+        self.threshold = threshold
+
+
 def optimization(A, Y, epsilon, print_proc=False):
     '''
     Solves the following optimization problem
