@@ -35,6 +35,17 @@ def info():
     return jsonify(DS.classes)
 
 
+@app.route("/set_threshold", methods=["POST"])
+def set_threshold():
+    data = request.get_json()
+
+    thr = float(data["threshold"])
+    DS.set_threshold(thr)
+    logging.info("Threshold set to {}".format(thr))
+
+    return Response(status=204)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", "-dir", help="Dataset directory", type=str, default="datasets/lfw/*")
