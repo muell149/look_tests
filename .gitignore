@@ -1,4 +1,5 @@
 *.pgm
+*.jpg
 *.info
 *.LOG
 *.npy

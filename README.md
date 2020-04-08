@@ -2,12 +2,9 @@
 
 ## Setup:
 
-* Set your Twilio credentials as environment variables with the names "TWILIO_ACCOUNT_SID" and "TWILIO_AUTH_TOKEN"
-* Run ``docker-compose up --build``. Make sure port 5000 is available.
-
 
 ## Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+This is a full face detection and recognition system. For the detection part [MTCNN](https://github.com/ipazc/mtcnn) package is used. The recognition is achieved by using a sparse representation method.
 
 ## Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
