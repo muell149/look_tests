@@ -60,8 +60,8 @@ while True:
                 id = post(data, headers)
                 if id is not None:
                     cv2.rectangle(preview,(box[0], box[1]), (box[0]+box[2], box[1]+box[3]),(0, 255, 0), 2)
-                    cv2.putText(preview, str(id), (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
-                    print(id)
+                    cv2.putText(preview, str(id["class_name"]), (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
+                    print(id["class"])
 
             cv2.imshow("preview", preview)
 
