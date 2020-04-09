@@ -24,9 +24,16 @@ def index():
     img = cv2.imdecode(img_buffer, 1)
 
     res = DS.classify(img)
+    classes = DS.classes
+
+    if res ==-1:
+        class_name = "None"
+    elif res != -1:
+        class_name = classes[res]
 
     return jsonify({
-        "class": res
+        "class": res,
+        "class_name": class_name
     })
 
 
