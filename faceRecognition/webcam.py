@@ -11,7 +11,7 @@ from lib.FaceDetectorHaar import FaceDetectorHaar
 video_path = 0
 cap = cv2.VideoCapture(video_path)
 
-face_detector = "HAAR"
+face_detector = "MTCNN"
 
 
 
@@ -45,8 +45,7 @@ while True:
 
             for face in faces:
                 box = face["box"]
-                cv2.rectangle(preview,(box[0], box[1]), (box[0]+box[2], box[1]+box[3]),
-                (0, 255, 0), 2)
+                
                 crop = frame[box[1]:box[1]+box[3],box[0]:box[0]+box[2],:]
 
                 """
@@ -60,6 +59,8 @@ while True:
 
                 id = post(data, headers)
                 if id is not None:
+                    cv2.rectangle(preview,(box[0], box[1]), (box[0]+box[2], box[1]+box[3]),(0, 255, 0), 2)
+                    cv2.putText(preview, str(id), (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
                     print(id)
 
             cv2.imshow("preview", preview)
