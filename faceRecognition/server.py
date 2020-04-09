@@ -26,7 +26,7 @@ def index():
     res = DS.classify(img)
     classes = DS.classes
 
-    if res ==-1:
+    if res ==-1 or res == None:
         class_name = "None"
     elif res != -1:
         class_name = classes[res]
