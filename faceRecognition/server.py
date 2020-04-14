@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 from flask import Flask, Response, request, jsonify
-from functions2 import DataSet
+from functions import DataSet
 
 logging.basicConfig(level=logging.INFO)
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         horizontal=args.horizontal,
         epsilon=args.epsilon,
         threshold=args.threshold,
-        vis=False
+        vis=True
     )
 
     app.run(

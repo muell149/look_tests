@@ -1,114 +1,153 @@
+import cv2
+import glob
+import random
 import numpy as np
 import cvxpy as cp
-import matplotlib.pyplot as plt
-import sys
-import cv2
-from collections import Counter
+
+from lib.Pipeline import detect_and_align
 from sklearn.preprocessing import normalize
-from sklearn import random_projection
-import glob
-import time
-import random
+from matplotlib import pyplot as plt
 
-def getmatrixes(dir,images_per_class,height,width,vertical,horizontal):
+class DataSet:
+    def __init__(self, dir, ext, images_per_class, height, width, vertical, horizontal, epsilon, threshold, vis):
+        # images_subjects = []
 
-    # Store the path to the images for each subject
-    images_subjects = []
-    for directory in glob.glob(dir):
-        images_subjects.append(glob.glob(directory+"/*.pgm"))
+        self.test_images_known = []
+        self.test_images_unknown = []
+        self.number_classes = 0
+        self.classes = {}
 
-    number_classes = len(images_subjects)
+        self.vis = vis
+        self.height = height
+        self.width = width
+        self.vertical = vertical
+        self.horizontal = horizontal
+        self.ver_pixels = int(height/vertical)
+        self.hor_pixels = int(width/horizontal)
+        self.images_per_class = images_per_class
 
-    A = [[] for i in range(vertical*horizontal)]
-    A_matrix = [[] for i in range(vertical*horizontal)]
+        self.epsilon = epsilon
+        self.threshold = threshold
 
-    for id_number in range(number_classes):
+        A = [[] for i in range(vertical*horizontal)]
+        all_subjects = glob.glob(dir)
+        for idx, directory in enumerate(all_subjects):
+            print("Generating matrices: {:<6}%  |  Classes found: {:<3}".format(round(100*idx/len(all_subjects), 2), self.number_classes), end="\r")
+            all_images = glob.glob(directory + "/*." + ext)
 
-        for im in random.sample(images_subjects[id_number],k=images_per_class):
+            aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in all_images]
+            indices = [i for i, al in enumerate(aligned_images) if al is not None]
+            if not indices:
+                continue
 
-            a = cv2.imread(im,0)
+            if len(indices) > images_per_class:
+                sample_indices = random.sample(indices, k=images_per_class+1)
+                sample_aligned_images = [al for i, al in enumerate(aligned_images) if i in sample_indices]
+                sample_images = [im for i, im in enumerate(all_images) if i in sample_indices]
 
-            a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
+                test_image = sample_images.pop()
+                test_aligned_image = sample_aligned_images.pop()
 
-            ver_pixels = int(a_resized.shape[0]/vertical)
-            hor_pixels = int(a_resized.shape[1]/horizontal)
+                self.classes[self.number_classes] = directory.split("/")[-1]
+                self.number_classes += 1
+                self.test_images_known.append(test_image)
 
-            index = 0
-            for i in range(vertical):
-                for j in range(horizontal):
-                    cut_part = a_resized[ver_pixels*i:ver_pixels*(i+1),hor_pixels*j:hor_pixels*(j+1)]
+                for aligned in sample_aligned_images:
+                    matrices_index = 0
+                    for r in range(0, self.height, self.ver_pixels):
+                        for c in range(0, self.width, self.hor_pixels):
+                            cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                            A[matrices_index].append(cut.flatten("F"))
+                            matrices_index += 1
 
-                    A[index].append(cut_part.flatten('F'))
+            else:
+                self.test_images_unknown.append(all_images[random.choice(indices)])
 
-                    index = index + 1
-
-            images_subjects[id_number].remove(im)
-
-    for i in range(vertical*horizontal):
-        A_matrix[i] = np.asmatrix(normalize(np.asmatrix(A[i]).T,axis=0,norm='l2'))
-
-    print("\n Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.\n")
-    print(" Size of each image is",height,"x",width,"and they have\n been cut into",horizontal*vertical,"parts\n")
-
-    return A_matrix, number_classes, images_subjects
-
-
-def getmatrix(dir,images_per_class,height,width):
-
-    # Store the path to the images for each subject.
-    images_subjects = []
-    for directory in glob.glob(dir):
-        images_subjects.append(glob.glob(directory+"/*.pgm"))
-
-    number_classes = len(images_subjects)
-
-    '''
-    Make a matrix with the images from all classes
-    '''
-    # Vector of matrices
-    A = []
-
-    for id_number in range(number_classes):
-
-        for im in random.sample(images_subjects[id_number],k=images_per_class):
-
-            a = cv2.imread(im,0)
-            a_resized = cv2.resize(a,(width,height),interpolation = cv2.INTER_AREA)
-            A.append(a_resized.flatten('F'))
-            images_subjects[id_number].remove(im)
-
-    A_matrix = normalize(np.asmatrix(A).T, axis=0, norm='l2')
-
-    print("\n Got matrix that contains info for", number_classes,"subjects,\n using",images_per_class,"images of each subject.\n")
-    print(" Size of each image is",height,"x",width,"\n")
-
-    return A_matrix, number_classes, images_subjects
+        print("\n")
+        self.matrices = [np.asmatrix(normalize(np.asmatrix(a).T, axis=0, norm="l2")) for a in A]
 
 
-def optimization(A,Y,epsilon,print_proc=False):
+    def classify(self, image, plot=False, vis=False):
+        aligned = detect_and_align(image, self.width, self.height)
+        if aligned is None:
+            return None
+
+        if vis:
+            cv2.imshow("aligned", aligned)
+            key = cv2.waitKey(0)
+
+        Y = []          # Y = np.asmatrix(aligned.flatten("F")).T
+        for r in range(0, self.height, self.ver_pixels):
+            for c in range(0, self.width, self.hor_pixels):
+                cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                Y.append(np.asmatrix(cut.flatten("F")).T)
+
+
+        # X, e = optimization(self.matrix, Y, self.epsilon)
+        X = [[] for i in range(self.vertical*self.horizontal)]
+        e = [[] for i in range(self.vertical*self.horizontal)]
+        votation = []
+
+        for i in range(self.vertical*self.horizontal):
+            X[i], e[i] = optimization(self.matrices[i], Y[i], self.epsilon, print_proc=False)
+
+            delta_l = []
+            for class_index in range(1, self.number_classes+1):
+                X_g = deltafunction(class_index, self.images_per_class, self.number_classes, X[i])
+                delta_l.append(X_g)
+
+            e_r = []
+            for class_index in range(0, self.number_classes):
+                e_r.append(np.linalg.norm(Y[i]-e[i]-self.matrices[i]*delta_l[class_index], 2))
+
+            if plot:
+                plt.plot(e_r,'o')
+                plt.xlabel("Subject")
+                plt.ylabel(r"Error $||y-A\delta_i||_2$")
+                plt.grid()
+                plt.show()
+
+            if sci(X[i], delta_l) >= self.threshold:
+                votation.append(np.argmin(e_r))
+            else:
+                votation.append(-1)
+
+        most_common = int(max(votation,key=votation.count))
+
+        if votation.count(most_common)<2:
+            return -1
+        else:
+            return most_common
+
+
+    def set_threshold(self, threshold):
+        self.threshold = threshold
+
+
+def optimization(A, Y, epsilon, print_proc=False):
     '''
     Solves the following optimization problem
 
-        min      || w ||_1
+       min      || w ||_1
         w
 
 
-        subject to:
+      subject to:
 
-        Bw-Y <= epsilon
+      Bw-Y <= epsilon
 
-        where
+      where
 
-        A = Matrix that contains info for all classes (subjects)
-        X = Sparse coeficient vector, we look for it to be zero in
-            most of its components, except for the ones
-            representing one subject
-        w = Concatenation of X(nx1) with an error vector e(mx1)
-        B = Concatenation of matrix A(mxn) with the identity I(mxm)
-        Y = Image to recognize
+      A = Matrix that contains info for all classes (subjects)
+      X = Sparse coeficient vector, we look for it to be zero in
+          most of its components, except for the ones
+          representing one subject
+      w = Concatenation of X(nx1) with an error vector e(mx1)
+      B = Concatenation of matrix A(mxn) with the identity I(mxm)
+      Y = Image to recognize
 
-        ||.||_1   is called the l_1 norm
-   '''
+      ||.||_1   is called the l_1 norm
+    '''
     I = np.asmatrix(np.identity(A.shape[0]))
 
     B = np.concatenate((A,I),axis=1)
@@ -135,6 +174,7 @@ def optimization(A,Y,epsilon,print_proc=False):
 
     return X, e
 
+
 def deltafunction(class_index,images_per_class,number_classes,X):
     '''
     Funtion that returns a vector of the same size as X
@@ -152,6 +192,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
         d[j,0]=X[j,0]
 
     return d
+
 
 def sci(x,delta_l):
     '''
@@ -171,113 +212,3 @@ def sci(x,delta_l):
     k = len(delta_l)
 
     return (k*max(norm_delta)/np.linalg.norm(x,1) - 1)/(k-1)
-
-def classify(image,width,height,number_classes,images_per_class,A,epsilon,threshold,ploterr):
-    '''
-    Function to classify image.
-    '''
-
-    a = cv2.imread(image,0)
-
-    # Original image is resized
-    a_resized = cv2.resize(a,(width,height),interpolation=cv2.INTER_AREA)
-
-    # Resize image is flattened
-    Y = np.asmatrix(a_resized.flatten('F')).T
-
-    # Solve the optimization problem
-    X, e = optimization(A,Y,epsilon)
-
-    delta_l = []
-
-    for class_index in range(1,number_classes+1):
-        X_g = deltafunction(class_index,images_per_class,number_classes,X)
-        delta_l.append(X_g)
-
-    e_r = []
-
-    for class_index in range(0,number_classes):
-        e_r.append(np.linalg.norm(Y-e-A*delta_l[class_index],2))
-
-    if ploterr==True:
-        plt.plot(e_r,'o')
-        plt.xlabel("Subject")
-        plt.ylabel(r"Error $||y-A\delta_i||_2$")
-        plt.grid()
-        plt.show()
-
-    if sci(X,delta_l) >= threshold:
-        return np.argmin(e_r)
-
-    else:
-        #print("Image is not a person in the dataset")
-        return -1
-
-def classifyCutImages(image,width,height,vertical,horizontal,number_classes,images_per_class,A,epsilon,threshold,ploterr,printvotation,plotimage):
-    '''
-    Function to classify image.
-    '''
-
-    a = cv2.imread(image,0)
-
-    if plotimage:
-        cv2.imshow('Image',a)
-        cv2.waitKey(0)
-
-    # Original image is resized
-    a_resized = cv2.resize(a,(width,height),interpolation=cv2.INTER_AREA)
-
-    Y = []
-
-    ver_pixels = int(a_resized.shape[0]/vertical)
-    hor_pixels = int(a_resized.shape[1]/horizontal)
-
-    for i in range(vertical):
-        for j in range(horizontal):
-            cut_part = a_resized[ver_pixels*i:ver_pixels*(i+1),hor_pixels*j:hor_pixels*(j+1)]
-
-            Y.append(np.asmatrix(cut_part.flatten('F')).T)
-
-    # Solve the optimization problem
-    X = [[] for i in range(vertical*horizontal)]
-    e = [[] for i in range(vertical*horizontal)]
-
-    votation = []
-
-    for i in range(vertical*horizontal):
-
-        X[i], e[i] = optimization(A[i],Y[i],epsilon,print_proc=False)
-
-        delta_l = []
-
-        for class_index in range(1,number_classes+1):
-            X_g = deltafunction(class_index,images_per_class,number_classes,X[i])
-            delta_l.append(X_g)
-
-        e_r = []
-
-        for class_index in range(0,number_classes):
-            e_r.append(np.linalg.norm(Y[i]-e[i]-A[i]*delta_l[class_index],2))
-
-        if ploterr==True:
-            plt.plot(e_r,'o')
-            plt.xlabel("Subject")
-            plt.ylabel(r"Error $||y-A\delta_i||_2$")
-            plt.grid()
-            plt.show()
-
-        if sci(X[i],delta_l) >= threshold:
-            votation.append(np.argmin(e_r))
-
-        else:
-            votation.append(-1)
-
-    if printvotation:
-        print("Votation distribution: ",votation,"\n")
-
-    most_common = max(votation,key=votation.count)
-
-    if votation.count(most_common)<2:
-        return -1
-    else:
-        return most_common

@@ -1,48 +1,15 @@
 import cv2
 import logging
 import numpy as np
+import mxnet as mx
+from lib.mtcnn_detector import MtcnnDetector
+import os
+import time
 
-from lib.FaceAlign import get_aligned_face
-# from lib.FaceDetector import FaceDetectorDlib, FaceDetectorHaar
-from mtcnn import MTCNN
 
 logging.basicConfig(level=logging.INFO)
 
-PUPILS_AND_NOSE = np.float32([(0.25, 0.16), (0.75, 0.16), (0.50, 0.51)])
-detector = MTCNN()
-
-# def detect_and_align(im, w=250, h=300, vis=False):
-#
-#     if isinstance(im, str):
-#         try:
-#             image = cv2.cvtColor(cv2.imread(im), cv2.COLOR_BGR2RGB)
-#         except:
-#             logging.error("Image type not supported")
-#             return None
-#
-#     elif isinstance(im, np.ndarray):
-#         image = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-#
-#     if vis:
-#         cv2.imshow("image", image)
-#
-#     result = detector.detect_faces(image)
-#
-#     if len(result) is 0:
-#         print(im)
-#         return None                             # Return None if no face is found
-#     else:
-#         box = result[0]['box']
-#
-#     crop = get_aligned_face(image, box, w, h)
-#     graycrop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-#
-#     if vis:
-#         cv2.imshow("crop", graycrop)
-#         cv2.waitKey(1)
-#
-#     return graycrop
-
+detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
 
 def detect_and_align(im, w=20, h=24, vis=False):
     if isinstance(im, str):
@@ -57,35 +24,36 @@ def detect_and_align(im, w=20, h=24, vis=False):
     image = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
 
-    detections = detector.detect_faces(image)
-    if len(detections) is 0:
+    detections = detector.detect_face(original)
+
+    if detections is None:
         return None                             # Return None if no face is found
 
-    box = detections[0]['box']
-    landmarks = np.float32([
-        detections[0]['keypoints']['left_eye'],
-        detections[0]['keypoints']['right_eye'],
-        detections[0]['keypoints']['nose']
-    ])
+    boxes = detections[0]
+    points = detections[1]
+
+    chips = detector.extract_image_chips(image,points,244,0.1)
+
+    aligned = chips[0]
+
+    b = boxes[0]
+    p = points[0]
+
+    aligned_resized = cv2.resize(aligned,(w,h),interpolation = cv2.INTER_AREA)
 
     if vis:
-        show = cv2.rectangle(original, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), (0, 255, 0), 2)
-        show = cv2.circle(show, detections[0]['keypoints']['left_eye'], 2, (0, 255, 0), -1)
-        show = cv2.circle(show, detections[0]['keypoints']['right_eye'], 2, (0, 255, 0), -1)
-        show = cv2.circle(show, detections[0]['keypoints']['nose'], 2, (0, 255, 0), -1)
+        show = cv2.rectangle(original, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), (0, 255, 0), 2)
+        for i in range(5):
+            show = cv2.circle(show, (p[i],p[i+5]), 1, (0, 255, 0), -1)
         cv2.imshow("box", show)
         cv2.waitKey(1)
 
-    target_positions = PUPILS_AND_NOSE.copy()
-    with np.errstate(all='ignore'):
-        target_positions[:, 0] = PUPILS_AND_NOSE[:, 0]*w
-        target_positions[:, 1] = PUPILS_AND_NOSE[:, 1]*h
-
-    H = cv2.getAffineTransform(landmarks, target_positions)
-    aligned = cv2.warpAffine(gray, H, (w, h))
+    if vis:
+        cv2.imshow("aligned resized", aligned_resized)
+        cv2.waitKey(1)
 
     if vis:
         cv2.imshow("crop", aligned)
         cv2.waitKey(1)
 
-    return aligned
+    return aligned_resized
