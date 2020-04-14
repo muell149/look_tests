@@ -1,0 +1,64 @@
+stages:
+  - version
+  - code scan
+  - build
+
+variables:
+  PACKAGE_NAME: face_detection
+  PACKAGE_VERSION: 0.0.1
+
+  UTILS_ARTIFACT: https://gitlab.algolook.com/api/v4/projects/development%2FUtilsGeneral/jobs/artifacts/dev/raw/utils_general/dist/utils_general-0.0.1.tar.gz?job=Build
+  UTILS_FILE: utils_general.tar.gz
+
+Code Scan:
+  stage: code scan
+  only:
+    - dev
+    - test
+  image: gitlab.algolook.com:5005/custom-containers/sonarscanner:latest
+  variables:
+    SONAR_TOKEN: ${SONAR_LOGIN}
+    SONAR_SOURCES: src
+    SONAR_ANALYSIS_MODE: publish
+  before_script:
+    # Changing to python package folder
+    - cd /builds/${CI_PROJECT_PATH}/${PACKAGE_NAME}
+    - sed -i "s|__PROJECT_KEY__|${CI_PROJECT_PATH_SLUG}|" sonar-project.properties
+    - sed -i "s|__PROJECT_ID__|${CI_PROJECT_PATH}|" sonar-project.properties
+    - sed -i "s|__COMMIT_SHA__|${CI_COMMIT_SHA}|" sonar-project.properties
+    - sed -i "s|__REF_NAME__|${CI_COMMIT_REF_NAME}|" sonar-project.properties
+    - cat sonar-project.properties
+
+    # Copy necessary files to docker fields directory
+    - curl -sS -o ${UTILS_FILE} --header "PRIVATE-TOKEN:${PRIVATE_ACCESS_TOKEN}" "${UTILS_ARTIFACT}"
+
+    # Creating virtual env to install packages
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install ${UTILS_FILE}
+    - pip install .
+
+  script:
+    # Executing coverage tests with nose
+    - nosetests --with-coverage --cover-erase --cover-package=src --cover-xml tests
+    - sed -i 's/filename="/filename=".\//g' coverage.xml
+
+    # Executing sonar-scanner script from sonarqube image
+    - gitlab-sonar-scanner
+
+  allow_failure: true
+
+Build:
+  stage: build
+  only:
+    - dev
+    - test
+  image: python:3-alpine
+  script: 
+    # Creating artifacts to be stored in /build
+    - cd /builds/${CI_PROJECT_PATH}/${PACKAGE_NAME}
+    - python setup.py sdist 
+  artifacts:
+    paths:
+      - /builds/${CI_PROJECT_PATH}/${PACKAGE_NAME}/dist/${PACKAGE_NAME}-${PACKAGE_VERSION}.tar.gz
+    expire_in: 6 mos 
