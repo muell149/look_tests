@@ -7,12 +7,12 @@ import requests
 from datetime import datetime
 from mtcnn import MTCNN
 from lib.FaceDetectorHaar import FaceDetectorHaar
+#from lib.Pipeline import face_detections,face_detections_to_box,align_faces
 
 video_path = 0
 cap = cv2.VideoCapture(video_path)
 
 face_detector = "MTCNN"
-
 
 
 if face_detector == "MTCNN":
@@ -39,7 +39,37 @@ while True:
         """
         Se realiza detección de rostros con HaarCascade sobre el frame
         """
-        if face_detector == "MTCNN":
+
+        if face_detector == "OPENFACE":
+            result = face_detections(frame)
+            boxes = face_detections_to_box(result)
+        
+            if len(boxes)!=0:
+                aligned_faces,points = align_faces(frame, boxes, size=150, padding=0)
+                
+                for face,box in zip(aligned_faces,boxes):
+                    """
+                    Se codifica en base64 cada rostro encontrado y se envía a la API
+                    """
+                    _, enccrop = cv2.imencode('.jpg', face)
+                    b64crop = base64.b64encode(enccrop)
+                    b64crop = b64crop.decode("utf-8")
+                    data = {"image": b64crop}
+                    headers = {'content-type': 'application/json'}
+
+                    id = post(data, headers)
+                    if id is not None:
+                        cv2.rectangle(preview,(box[0], box[1]), (box[2], box[3]),(0, 255, 0), 2)
+                        cv2.putText(preview, str(id["class_name"]), (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
+                        print(id["class"])
+
+                cv2.imshow("preview", preview)
+
+                k = cv2.waitKey(0)
+                if k == 27:    # Esc key to stop
+                    break
+
+        elif face_detector == "MTCNN":
 
             faces = detector.detect_faces(frame)
 
