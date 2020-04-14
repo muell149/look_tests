@@ -76,7 +76,7 @@ if __name__ == "__main__":
         horizontal=args.horizontal,
         epsilon=args.epsilon,
         threshold=args.threshold,
-        vis=True
+        vis=False
     )
 
     app.run(

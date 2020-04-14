@@ -29,25 +29,31 @@ def post(data, headers):
 while True:
     ok, frame = cap.read()
     if ok:
-        preview = frame.copy()
         """
         Se realiza detección de rostros
         """
-        img = cv2.resize(frame,(320,240))
+        # img = cv2.resize(frame,(320,240))
+        img = frame
 
-        boxes, points = detector.detect_face(img)
+        preview = img.copy()
 
-        if boxes is None:
-            continue
+        detections = detector.detect_face(img)
 
-        for box in boxes:
-            
-            crop = frame[box[1]:box[3],box[0]:box[2],:]
+        if detections is None:
+            continue                             # Return None if no face is found
+
+        boxes = detections[0]
+        points = detections[1]
+
+        chips = detector.extract_image_chips(img,points,244,0.1)
+
+        for chip,box in zip(chips,boxes):
 
             """
             Se codifica en base64 cada rostro encontrado y se envía a la API
+
             """
-            _, enccrop = cv2.imencode('.jpg', crop)
+            _, enccrop = cv2.imencode('.jpg', chip)
             b64crop = base64.b64encode(enccrop)
             b64crop = b64crop.decode("utf-8")
             data = {"image": b64crop}
@@ -56,8 +62,8 @@ while True:
             id = post(data,headers)
 
             if id is not None:
-                cv2.rectangle(preview,(box[0], box[1]), (box[2], box[3]),(0, 255, 0), 2)
-                cv2.putText(preview, str(id["class_name"]), (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
+                cv2.rectangle(preview,(int(box[0]), int(box[1])), (int(box[2]), int(box[3])),(0, 255, 0), 2)
+                cv2.putText(preview, str(id["class_name"]), (int(box[0]), int(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
                 print(id["class"])
 
         cv2.imshow("preview", preview)
