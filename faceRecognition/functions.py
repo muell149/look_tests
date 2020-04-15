@@ -9,7 +9,7 @@ from sklearn.preprocessing import normalize
 from matplotlib import pyplot as plt
 
 class DataSet:
-    def __init__(self, dir, ext, images_per_class, height, width, vertical, horizontal, epsilon, threshold, vis):
+    def __init__(self, dir, ext, images_per_class, size, vertical, horizontal, epsilon, threshold, vis):
         # images_subjects = []
 
         self.test_images_known = []
@@ -18,12 +18,11 @@ class DataSet:
         self.classes = {}
 
         self.vis = vis
-        self.height = height
-        self.width = width
+        self.size = size
         self.vertical = vertical
         self.horizontal = horizontal
-        self.ver_pixels = int(height/vertical)
-        self.hor_pixels = int(width/horizontal)
+        self.ver_pixels = int(size/vertical)
+        self.hor_pixels = int(size/horizontal)
         self.images_per_class = images_per_class
 
         self.epsilon = epsilon
@@ -35,7 +34,7 @@ class DataSet:
             print("Generating matrices: {:<6}%  |  Classes found: {:<3}".format(round(100*idx/len(all_subjects), 2), self.number_classes), end="\r")
             all_images = glob.glob(directory + "/*." + ext)
 
-            aligned_images = [detect_and_align(im, width, height, vis=self.vis) for im in all_images]
+            aligned_images = [detect_and_align(im, size, vis=self.vis) for im in all_images]
             indices = [i for i, al in enumerate(aligned_images) if al is not None]
             if not indices:
                 continue
@@ -54,8 +53,8 @@ class DataSet:
 
                 for aligned in sample_aligned_images:
                     matrices_index = 0
-                    for r in range(0, self.height, self.ver_pixels):
-                        for c in range(0, self.width, self.hor_pixels):
+                    for r in range(0, self.size, self.ver_pixels):
+                        for c in range(0, self.size, self.hor_pixels):
                             cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
                             A[matrices_index].append(cut.flatten("F"))
                             matrices_index += 1
@@ -68,7 +67,7 @@ class DataSet:
 
 
     def classify(self, image, plot=False, vis=False):
-        aligned = detect_and_align(image, self.width, self.height)
+        aligned = detect_and_align(image, self.size)
         if aligned is None:
             return None
 
@@ -77,8 +76,8 @@ class DataSet:
             key = cv2.waitKey(0)
 
         Y = []          # Y = np.asmatrix(aligned.flatten("F")).T
-        for r in range(0, self.height, self.ver_pixels):
-            for c in range(0, self.width, self.hor_pixels):
+        for r in range(0, self.size, self.ver_pixels):
+            for c in range(0, self.size, self.hor_pixels):
                 cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
                 Y.append(np.asmatrix(cut.flatten("F")).T)
 

@@ -514,7 +514,7 @@ class MtcnnDetector(object):
             scale = np.linalg.norm(probe_vec)
             angle = 180.0 / math.pi * math.atan2(probe_vec[1, 0], probe_vec[0, 0])
 
-            from_center = [(shape[0]+shape[2])/2.0, (shape[1]+shape[3])/2.0]
+            from_center = [(shape[0]+shape[2])/2.0, (shape[1]+shape[3])/1.8]
             to_center = [0, 0]
             to_center[1] = desired_size * 0.4
             to_center[0] = desired_size * 0.5

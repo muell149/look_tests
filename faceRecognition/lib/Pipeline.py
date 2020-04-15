@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
 
-def detect_and_align(im, w=20, h=24, vis=False):
+def detect_and_align(im, size=24, vis=False):
     if isinstance(im, str):
         try:
             original = cv2.imread(im, 1)
@@ -32,14 +32,14 @@ def detect_and_align(im, w=20, h=24, vis=False):
     boxes = detections[0]
     points = detections[1]
 
-    chips = detector.extract_image_chips(image,points,244,0.1)
+    chips = detector.extract_image_chips(image,points,256,0.1)
 
     aligned = chips[0]
 
     b = boxes[0]
     p = points[0]
 
-    aligned_resized = cv2.resize(aligned,(w,h),interpolation = cv2.INTER_AREA)
+    aligned_resized = cv2.resize(aligned,(size,size),interpolation = cv2.INTER_AREA)
 
     if vis:
         show = cv2.rectangle(original, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), (0, 255, 0), 2)

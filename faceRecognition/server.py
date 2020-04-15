@@ -58,25 +58,24 @@ if __name__ == "__main__":
     parser.add_argument("--directory", "-dir", help="Dataset directory", type=str, default="datasets/LookDataSet/*")
     parser.add_argument("--extension", "-ext", help="Dataset images extension", type=str, default="jpg")
     parser.add_argument("--images_per_class", "-ipc", help="Images to use per class", type=int, default=20)
-    parser.add_argument("--width", "-wi", help="Image width", type=int, default=20)
-    parser.add_argument("--height", "-he", help="Image height", type=int, default=24)
+    parser.add_argument("--size", "-si", help="Image size", type=int, default=24)
     parser.add_argument("--vertical", "-ve", help="Vertical splits", type=int, default=4)
     parser.add_argument("--horizontal", "-ho", help="Horizontal splits", type=int, default=2)
     parser.add_argument("--epsilon", "-e", help="Epsilon", type=float, default=0.0)
     parser.add_argument("--threshold", "-t", help="Classification threshold", type=float, default=0.1)
+    parser.add_argument("--vis", "-v",help="Show aligned and crop images", type=bool,default=False)
     args = parser.parse_args()
 
     DS = DataSet(
         dir=args.directory,
         ext=args.extension,
         images_per_class=args.images_per_class,
-        width=args.width,
-        height=args.height,
+        size=args.size,
         vertical=args.vertical,
         horizontal=args.horizontal,
         epsilon=args.epsilon,
         threshold=args.threshold,
-        vis=False
+        vis=args.vis
     )
 
     app.run(
