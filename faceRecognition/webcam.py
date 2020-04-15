@@ -3,6 +3,7 @@ import cv2
 import json
 import base64
 import requests
+import numpy as np
 import mxnet as mx
 from lib.mtcnn_detector import MtcnnDetector
 import time
@@ -13,6 +14,9 @@ detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 
 
 video_path = 0
 cap = cv2.VideoCapture(video_path)
+
+color = (246, 181, 100)
+
 
 def post(data, headers):
     """
@@ -45,7 +49,7 @@ while True:
         boxes = detections[0]
         points = detections[1]
 
-        chips = detector.extract_image_chips(img,points,244,0.1)
+        chips = detector.extract_image_chips(img,points,23,0.1)
 
         for chip,box in zip(chips,boxes):
 
@@ -62,9 +66,29 @@ while True:
             id = post(data,headers)
 
             if id is not None:
-                cv2.rectangle(preview,(int(box[0]), int(box[1])), (int(box[2]), int(box[3])),(0, 255, 0), 2)
-                cv2.putText(preview, str(id["class_name"]), (int(box[0]), int(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
+                cv2.rectangle(preview,(int(box[0]), int(box[1])), (int(box[2]), int(box[3])),color, 1)
+                cv2.putText(preview, str(id["class_name"]), (int(box[0]), int(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1,cv2.LINE_AA)
+
+                max_x = preview.shape[1]
+                max_y = preview.shape[0]
+
+                im_boundary = chip
+
+                if max_x-int(box[2])<=int(box[0]) and max_y-int(box[3])<=int(box[1]):
+                    preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[0])-im_boundary.shape[1]:int(box[0]),:] = im_boundary
+
+                elif max_x-int(box[2])>=int(box[0]) and max_y-int(box[3])>=int(box[1]):
+                    preview[int(box[3]):int(box[3])+im_boundary.shape[0],int(box[2]):int(box[2])+im_boundary.shape[1],:] = im_boundary
+
+                elif max_x-int(box[2])<=int(box[0]) and max_y-int(box[3])>=int(box[1]):
+                    preview[int(box[3]):int(box[3])+im_boundary.shape[0],int(box[0])-im_boundary.shape[1]:int(box[0]),:] = im_boundary
+
+                elif max_x-int(box[2])>=int(box[0]) and max_y-int(box[3])<=int(box[1]):
+                    preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[2]):int(box[2])+im_boundary.shape  [1],:] = im_boundary
+
+
                 print(id["class"])
+
 
         cv2.imshow("preview", preview)
 
