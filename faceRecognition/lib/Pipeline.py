@@ -32,7 +32,7 @@ def detect_and_align(im, size=24, vis=False):
     boxes = detections[0]
     points = detections[1]
 
-    chips = detector.extract_image_chips(image,points,256,0.1)
+    chips = detector.extract_image_chips(image,points)
 
     aligned = chips[0]
 

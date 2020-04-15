@@ -462,7 +462,7 @@ class MtcnnDetector(object):
 
         return tran_m, tran_b
 
-    def extract_image_chips(self, img, points, desired_size=256, padding=0):
+    def extract_image_chips(self, img, points, desired_size=256, padding=0.1):
         """
             crop and align face
         Parameters:

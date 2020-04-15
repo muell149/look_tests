@@ -49,7 +49,7 @@ while True:
         boxes = detections[0]
         points = detections[1]
 
-        chips = detector.extract_image_chips(img,points,256,0.1)
+        chips = detector.extract_image_chips(img,points)
 
 
         for chip,box in zip(chips,boxes):
@@ -73,7 +73,7 @@ while True:
                 max_x = preview.shape[1]
                 max_y = preview.shape[0]
 
-                im_boundary = aligned_resized = cv2.resize(chip,(24,24),interpolation = cv2.INTER_AREA)
+                im_boundary = cv2.resize(chip,(24,24),interpolation = cv2.INTER_AREA)
 
                 if max_x-int(box[2])<=int(box[0]) and max_y-int(box[3])<=int(box[1]):
                     preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[0])-im_boundary.shape[1]:int(box[0]),:] = im_boundary
