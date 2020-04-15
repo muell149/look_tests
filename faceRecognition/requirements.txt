@@ -1,0 +1,9 @@
+opencv-python
+matplotlib
+numpy
+cvxpy
+scikit-learn
+dlib
+flask
+tensorflow
+mxnet
