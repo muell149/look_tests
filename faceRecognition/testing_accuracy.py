@@ -2,15 +2,18 @@ import cv2
 import random
 import argparse
 
-from functions2 import DataSet
+from functions import DataSet
+from lib.
+import sys
+
 
 random.seed(13)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--directory",        "-dir", help="Dataset directory",        type=str,   default="datasets/LookDataSet/*")
+    parser.add_argument("--directory",        "-dir", help="Dataset directory",        type=str,   default="datasets/LookDataSet2")
     parser.add_argument("--extension",        "-ext", help="Dataset images extension", type=str,   default="jpg")
-    parser.add_argument("--images_per_class", "-ipc", help="Images to use per class",  type=int,   default=20)
+    parser.add_argument("--images_per_class", "-ipc", help="Images to use per class",  type=int,   default=14)
     parser.add_argument("--size",             "-si",  help="Image size",               type=int,   default=24)
     parser.add_argument("--vertical",         "-ve",  help="Vertical splits",          type=int,   default=4)
     parser.add_argument("--horizontal",       "-ho",  help="Horizontal splits",        type=int,   default=2)
@@ -35,28 +38,39 @@ def main():
     print("\nTesting known images\n")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
-    for i, test_known in enumerate(ds.test_images_known):
-        test_res = ds.classify(test_known, vis=vis)
+    for subject in ds.test_images_known:
+        for image in ds.test_images_known[subject]:
+            test_res = ds.classify(image, vis=vis)
 
-        if test_res==-1:
-            result = "incorrect"
-            print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], "* NOT IN DB *", result))
-        elif test_res is None:
-            print("{:<30}| {:<30}|".format(ds.classes[i], "* NO FACE FOUND *"))
-        else:
-            result = "correct" if test_res == i else "incorrect"
-            print("{:<30}| {:<30}| {:<10}".format(ds.classes[i], ds.classes[test_res], result))
+            if test_res==-1:
+                result = "incorrect"
+                print("{:<30}| {:<30}| {:<10}".format(subject, "* NOT IN DB *", result))
+            elif test_res is None:
+                print("{:<30}| {:<30}|".format(subject, "* NO FACE FOUND *"))
+            else:
+                result = "correct" if ds.classes[test_res]==subject else "incorrect"
+                print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
 
     print("\n\nTesting unknown images\n")
-    if len(ds.test_images_unknown) >= len(ds.test_images_known):
-        for test_unknown in random.sample(ds.test_images_unknown, k=ds.number_classes):
-            test_res = ds.classify(test_unknown, plot=False, vis=vis)
-            print(test_res)
-    else:
-        for test_unknown in ds.test_images_unknown:
-            test_res = ds.classify(test_unknown, plot=False, vis=vis)
-            print(test_res)
+    print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+    print("------------------------------|-------------------------------|----------")
+    for subject in ds.test_images_unknown:
+        for image in ds.test_images_unknown[subject]:
+            test_res = ds.classify(image, vis=vis)
 
+            if test_res==-1:
+                result = "correct"
+                print("{:<30}| {:<30}| {:<10}".format(subject, "* NOT IN DB *", result))
+            elif test_res is None:
+                print("{:<30}| {:<30}|".format(subject, "* NO FACE FOUND *"))
+            else:
+                result = "incorrect"
+                print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
+
+    print("\n\nTesting group images\n")
+
+    for photo in ds.test_images_group:
+        print(photo)
 
     cv2.destroyAllWindows()
 
