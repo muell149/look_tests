@@ -7,13 +7,15 @@ import cvxpy as cp
 from lib.Pipeline import detect_and_align
 from sklearn.preprocessing import normalize
 from matplotlib import pyplot as plt
+import sys
 
 class DataSet:
     def __init__(self, dir, ext, images_per_class, size, vertical, horizontal, epsilon, threshold, vis):
         # images_subjects = []
 
-        self.test_images_known = []
-        self.test_images_unknown = []
+        self.test_images_known = {}
+        self.test_images_unknown = {}
+        self.test_images_group = []
         self.number_classes = 0
         self.classes = {}
 
@@ -28,39 +30,47 @@ class DataSet:
         self.epsilon = epsilon
         self.threshold = threshold
 
+        # Defining the different images for check accuracy
+
+        aux = glob.glob( dir + "/Test/*" )
+        for directory in aux:
+            images = glob.glob(directory + "/*." + ext)
+            self.test_images_known[directory.split("/")[-1]]=images
+
+        aux = glob.glob( dir + "/Unknown/*" )
+        for directory in aux:
+            images = glob.glob(directory + "/*." + ext)
+            self.test_images_unknown[directory.split("/")[-1]]=images
+
+        aux = glob.glob( dir + "/Group" )
+        for directory in aux:
+            images = glob.glob(directory + "/*." + ext)
+            for i in images:
+                self.test_images_group.append(i)
+
         A = [[] for i in range(vertical*horizontal)]
-        all_subjects = glob.glob(dir)
+        all_subjects = glob.glob(dir + "/Train/*")
+
         for idx, directory in enumerate(all_subjects):
             print("Generating matrices: {:<6}%  |  Classes found: {:<3}".format(round(100*idx/len(all_subjects), 2), self.number_classes), end="\r")
             all_images = glob.glob(directory + "/*." + ext)
 
             aligned_images = [detect_and_align(im, size, vis=self.vis) for im in all_images]
+            print("\n",len(aligned_images))
             indices = [i for i, al in enumerate(aligned_images) if al is not None]
             if not indices:
                 continue
 
-            if len(indices) > images_per_class:
-                sample_indices = random.sample(indices, k=images_per_class+1)
-                sample_aligned_images = [al for i, al in enumerate(aligned_images) if i in sample_indices]
-                sample_images = [im for i, im in enumerate(all_images) if i in sample_indices]
+            self.classes[self.number_classes] = directory.split("/")[-1]
+            self.number_classes += 1
 
-                test_image = sample_images.pop()
-                test_aligned_image = sample_aligned_images.pop()
-
-                self.classes[self.number_classes] = directory.split("/")[-1]
-                self.number_classes += 1
-                self.test_images_known.append(test_image)
-
-                for aligned in sample_aligned_images:
-                    matrices_index = 0
-                    for r in range(0, self.size, self.ver_pixels):
-                        for c in range(0, self.size, self.hor_pixels):
-                            cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
-                            A[matrices_index].append(cut.flatten("F"))
-                            matrices_index += 1
-
-            else:
-                self.test_images_unknown.append(all_images[random.choice(indices)])
+            for aligned in aligned_images:
+                matrices_index = 0
+                for r in range(0, self.size, self.ver_pixels):
+                    for c in range(0, self.size, self.hor_pixels):
+                        cut = aligned[r:r+self.ver_pixels, c:c+self.hor_pixels]
+                        A[matrices_index].append(cut.flatten("F"))
+                        matrices_index += 1
 
         print("\n")
         self.matrices = [np.asmatrix(normalize(np.asmatrix(a).T, axis=0, norm="l2")) for a in A]
@@ -187,7 +197,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
 
     X = np.asmatrix(X)
 
-    for j in range((class_index-1)*images_per_class, class_index*images_per_class):
+    for j in range((class_index-1)*images_per_class, class_index*images_per_class-1):
         d[j,0]=X[j,0]
 
     return d
