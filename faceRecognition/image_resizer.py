@@ -3,11 +3,11 @@ import cv2
 import glob
 
 MAX_DIM = 400
-DATASET = "datasets/LookDataSet/*"
+DATASET = "datasets/LookDataSet2/**"
 EXT = "jpg"
 VIS = False
 
-all_dirs = glob.glob(DATASET)
+all_dirs = glob.glob(DATASET,recursive=True)
 for i_dir, dir in enumerate(all_dirs):
     all_paths = glob.glob(dir + "/*." + EXT)
     for i_path, path in enumerate(all_paths):
