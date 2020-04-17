@@ -8,8 +8,8 @@ import glob
 
 detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
 
-for img in glob.glob("Jaime_Tenorio/*"):
-    img = cv2.imread('Jaime_Tenorio/snapshot00.jpg')
+for im in glob.glob("Jaime_Tenorio/*"):
+    img = cv2.imread(im)
 
     # run detector
     results = detector.detect_face(img)
@@ -42,7 +42,7 @@ for img in glob.glob("Jaime_Tenorio/*"):
             for i in range(5):
                 cv2.circle(draw, (p[i], p[i + 5]), 1, (0, 0, 255), 2)
 
-        cv2.imshow("detection result".format(), draw)
+        cv2.imshow("{}".format(im), draw)
         cv2.waitKey(0)
     
     cv2.destroyAllWindows()
