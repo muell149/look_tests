@@ -126,10 +126,7 @@ def main():
                     preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[2]):int(box[2])+im_boundary.shape  [1],:] = im_boundary
 
         cv2.imshow("preview", preview)
-
-        k = cv2.waitKey(0)
-        if k == 27:    # Esc key to stop
-            break
+        cv2.waitKey(0)
 
     cv2.destroyAllWindows()
 
