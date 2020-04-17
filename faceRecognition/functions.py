@@ -56,7 +56,6 @@ class DataSet:
             all_images = glob.glob(directory + "/*." + ext)
 
             aligned_images = [detect_and_align(im, size, vis=self.vis) for im in all_images]
-            print("\n",len(aligned_images))
             indices = [i for i, al in enumerate(aligned_images) if al is not None]
             if not indices:
                 continue

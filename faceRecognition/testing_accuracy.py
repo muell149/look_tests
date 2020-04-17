@@ -20,7 +20,6 @@ def main():
     parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.15)
     parser.add_argument("--vis",              "-v",   help="Show aligned and crop images", type=bool,default=False)
     args = parser.parse_args()
-    vis = False
 
     ds = DataSet(
         dir=args.directory,
@@ -33,6 +32,8 @@ def main():
         threshold=args.threshold,
         vis=args.vis
     )
+
+    vis = False
 
     print("\n*************************************************************************")
     print("*                       Testing known images                            *")   
