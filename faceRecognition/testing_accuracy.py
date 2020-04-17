@@ -1,7 +1,7 @@
 import cv2
 import random
 import argparse
-
+from lib.Pipeline import detector
 from functions import DataSet
 import sys
 
@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--vertical",         "-ve",  help="Vertical splits",          type=int,   default=4)
     parser.add_argument("--horizontal",       "-ho",  help="Horizontal splits",        type=int,   default=2)
     parser.add_argument("--epsilon",          "-e",   help="Epsilon",                  type=float, default=0.0)
-    parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.22)
+    parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.15)
     parser.add_argument("--vis",              "-v",   help="Show aligned and crop images", type=bool,default=False)
     args = parser.parse_args()
     vis = False
@@ -34,7 +34,9 @@ def main():
         vis=args.vis
     )
 
-    print("\nTesting known images\n")
+    print("\n*************************************************************************")
+    print("*                       Testing known images                            *")   
+    print("*************************************************************************")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
     for subject in ds.test_images_known:
@@ -50,7 +52,10 @@ def main():
                 result = "correct" if ds.classes[test_res]==subject else "incorrect"
                 print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
 
-    print("\n\nTesting unknown images\n")
+
+    print("\n\n*************************************************************************")
+    print("*                      Testing unknown images                           *")   
+    print("*************************************************************************")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
     for subject in ds.test_images_unknown:
@@ -66,10 +71,65 @@ def main():
                 result = "incorrect"
                 print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
 
-    print("\n\nTesting group images\n")
 
-    for photo in ds.test_images_group:
-        print(photo)
+    print("\n\n*************************************************************************")
+    print("*                       Testing group images                            *")   
+    print("*************************************************************************\n")
+
+    for photo_path in ds.test_images_group:
+        
+        photo = cv2.imread(photo_path)
+
+        preview = photo.copy()
+
+        detections = detector.detect_face(photo)
+
+        if detections is None:
+            continue                             # Return None if no face is found
+
+        boxes = detections[0]
+        points = detections[1]
+
+        preview = photo.copy()
+
+        chips = detector.extract_image_chips(photo,points)
+
+        for chip,box in zip(chips,boxes):
+
+            id = ds.classify(chip, vis=vis)
+            if id ==-1:
+                class_name = "Not in DS"
+            elif id == None:
+                class_name = "No detection"
+            elif id != -1:
+                class_name = ds.classes[id]
+
+            if id is not None:
+                cv2.rectangle(preview,(int(box[0]), int(box[1])), (int(box[2]), int(box[3])),(246, 181, 100), 1)
+                cv2.putText(preview, str(class_name), (int(box[0]), int(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (246, 181, 100), 1,cv2.LINE_AA)
+
+                max_x = preview.shape[1]
+                max_y = preview.shape[0]
+
+                im_boundary = cv2.resize(chip,(24,24),interpolation = cv2.INTER_AREA)
+
+                if max_x-int(box[2])<=int(box[0]) and max_y-int(box[3])<=int(box[1]):
+                    preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[0])-im_boundary.shape[1]:int(box[0]),:] = im_boundary
+
+                elif max_x-int(box[2])>=int(box[0]) and max_y-int(box[3])>=int(box[1]):
+                    preview[int(box[3]):int(box[3])+im_boundary.shape[0],int(box[2]):int(box[2])+im_boundary.shape[1],:] = im_boundary
+
+                elif max_x-int(box[2])<=int(box[0]) and max_y-int(box[3])>=int(box[1]):
+                    preview[int(box[3]):int(box[3])+im_boundary.shape[0],int(box[0])-im_boundary.shape[1]:int(box[0]),:] = im_boundary
+
+                elif max_x-int(box[2])>=int(box[0]) and max_y-int(box[3])<=int(box[1]):
+                    preview[int(box[1])-im_boundary.shape[0]:int(box[1]),int(box[2]):int(box[2])+im_boundary.shape  [1],:] = im_boundary
+
+        cv2.imshow("preview", preview)
+
+        k = cv2.waitKey(0)
+        if k == 27:    # Esc key to stop
+            break
 
     cv2.destroyAllWindows()
 
