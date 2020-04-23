@@ -8,7 +8,7 @@ import glob
 
 detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
 
-for im in glob.glob("Jaime_Tenorio/*"):
+for im in glob.glob("../../../Dropbox/Jaime_Tenorio/*"):
     img = cv2.imread(im)
 
     # run detector

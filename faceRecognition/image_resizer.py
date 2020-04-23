@@ -3,7 +3,7 @@ import cv2
 import glob
 
 MAX_DIM = 400
-DATASET = "datasets/LookDataSet2/**"
+DATASET = "datasets/**"
 EXT = "jpg"
 VIS = False
 

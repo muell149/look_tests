@@ -10,14 +10,14 @@ random.seed(13)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--directory",        "-dir", help="Dataset directory",        type=str,   default="datasets/LookDataSet2")
+    parser.add_argument("--directory",        "-dir", help="Dataset directory",        type=str,   default="datasets/LookDataSet")
     parser.add_argument("--extension",        "-ext", help="Dataset images extension", type=str,   default="jpg")
     parser.add_argument("--images_per_class", "-ipc", help="Images to use per class",  type=int,   default=14)
-    parser.add_argument("--size",             "-si",  help="Image size",               type=int,   default=24)
-    parser.add_argument("--vertical",         "-ve",  help="Vertical splits",          type=int,   default=4)
+    parser.add_argument("--size",             "-si",  help="Image size",               type=int,   default=30)
+    parser.add_argument("--vertical",         "-ve",  help="Vertical splits",          type=int,   default=2)
     parser.add_argument("--horizontal",       "-ho",  help="Horizontal splits",        type=int,   default=2)
     parser.add_argument("--epsilon",          "-e",   help="Epsilon",                  type=float, default=0.0)
-    parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.15)
+    parser.add_argument("--threshold",        "-t",   help="Classification threshold", type=float, default=0.0001)
     parser.add_argument("--vis",              "-v",   help="Show aligned and crop images", type=bool,default=False)
     args = parser.parse_args()
 
@@ -40,20 +40,32 @@ def main():
     print("*************************************************************************")
     print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
     print("------------------------------|-------------------------------|----------")
+
+    counter = 0
+    i = 0
+
     for subject in ds.test_images_known:
         for image in ds.test_images_known[subject]:
             test_res = ds.classify(image, vis=vis)
-
+            counter = counter + 1
             if test_res==-1:
                 result = "incorrect"
                 print("{:<30}| {:<30}| {:<10}".format(subject, "* NOT IN DB *", result))
             elif test_res is None:
                 print("{:<30}| {:<30}|".format(subject, "* NO FACE FOUND *"))
             else:
-                result = "correct" if ds.classes[test_res]==subject else "incorrect"
+                if ds.classes[test_res]==subject:
+                    result = "correct"
+                    i=i+1  
+                else:
+                    result = "incorrect"
                 print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
 
+    print("Accuracy:", i*100./counter)
 
+
+    counter = 0
+    i = 0
     print("\n\n*************************************************************************")
     print("*                      Testing unknown images                           *")   
     print("*************************************************************************")
@@ -62,16 +74,17 @@ def main():
     for subject in ds.test_images_unknown:
         for image in ds.test_images_unknown[subject]:
             test_res = ds.classify(image, vis=vis)
-
+            counter = counter + 1
             if test_res==-1:
                 result = "correct"
+                i=i+1
                 print("{:<30}| {:<30}| {:<10}".format(subject, "* NOT IN DB *", result))
             elif test_res is None:
                 print("{:<30}| {:<30}|".format(subject, "* NO FACE FOUND *"))
             else:
                 result = "incorrect"
                 print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
-
+    print("Accuracy:", i*100./counter)
 
     print("\n\n*************************************************************************")
     print("*                       Testing group images                            *")   
