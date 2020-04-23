@@ -1,3 +1,4 @@
+ipython
 opencv-python
 setuptools
 matplotlib
@@ -6,5 +7,5 @@ cvxpy
 scikit-learn
 dlib
 flask
-tensorflow
+tensorflow-gpu
 mxnet
