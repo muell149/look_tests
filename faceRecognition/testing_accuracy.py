@@ -4,6 +4,7 @@ import argparse
 from lib.Pipeline import detector
 from functions import DataSet
 import sys
+import datetime
 
 
 random.seed(13)
@@ -43,7 +44,7 @@ def main():
 
     counter = 0
     i = 0
-
+    begin_time = datetime.datetime.now()
     for subject in ds.test_images_known:
         for image in ds.test_images_known[subject]:
             test_res = ds.classify(image, vis=vis)
@@ -62,6 +63,7 @@ def main():
                 print("{:<30}| {:<30}| {:<10}".format(subject,ds.classes[test_res], result))
 
     print("Accuracy:", i*100./counter)
+    print("Average time per person:", (datetime.datetime.now() - begin_time)/ counter)
 
 
     counter = 0
