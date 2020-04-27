@@ -1,11 +1,8 @@
-ipython
+numba
 opencv-python
-setuptools
 matplotlib
 numpy
 cvxpy
 scikit-learn
-dlib
 flask
-tensorflow-gpu
 mxnet
