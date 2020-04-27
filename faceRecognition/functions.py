@@ -196,7 +196,7 @@ def deltafunction(class_index,images_per_class,number_classes,X):
 
     X = np.asmatrix(X)
 
-    for j in range((class_index-1)*images_per_class, class_index*images_per_class-1):
+    for j in range((class_index-1)*images_per_class, class_index*images_per_class):
         d[j,0]=X[j,0]
 
     return d
