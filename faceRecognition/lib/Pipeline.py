@@ -9,7 +9,7 @@ import time
 
 logging.basicConfig(level=logging.INFO)
 
-detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
+detector = MtcnnDetector(model_folder='lib/models', ctx=mx.gpu(0), num_worker = 4 , accurate_landmark = False)
 
 def detect_and_align(im, size=24, vis=False):
     if isinstance(im, str):

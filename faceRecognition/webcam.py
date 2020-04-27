@@ -10,7 +10,7 @@ import time
 
 from datetime import datetime
 
-detector = MtcnnDetector(model_folder='lib/models', ctx=mx.cpu(0), num_worker = 4 , accurate_landmark = False)
+detector = MtcnnDetector(model_folder='lib/models', ctx=mx.gpu(0), num_worker = 4 , accurate_landmark = False)
 
 video_path = 0
 cap = cv2.VideoCapture(video_path)
