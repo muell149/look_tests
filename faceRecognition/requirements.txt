@@ -5,4 +5,4 @@ numpy
 cvxpy
 scikit-learn
 flask
-mxnet
+mxnet-cu102
