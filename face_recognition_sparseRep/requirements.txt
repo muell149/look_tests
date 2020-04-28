@@ -1,0 +1,8 @@
+numba
+opencv-python
+matplotlib
+numpy
+cvxpy
+scikit-learn
+flask
+mxnet-cu102
