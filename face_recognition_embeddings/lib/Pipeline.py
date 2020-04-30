@@ -40,20 +40,20 @@ def extract_face(filename, required_size=(160, 160)):
 
 
 # load images and extract faces for all images in a directory
-def load_faces(directory):
+def load_faces(directory, size=160):
 	faces = list()
 	# enumerate files
 	for filename in listdir(directory):
 		# path
 		path = directory + filename
 		# get face
-		face = extract_face(path)
+		face = extract_face(path,required_size=(size, size))
 		# store
 		faces.append(face)
 	return faces
  
 # load a dataset that contains one subdir for each class that in turn contains images
-def load_dataset(directory):
+def load_dataset(directory, size=160):
 	X, y = list(), list()
 	# enumerate folders, on per class
 	for subdir in listdir(directory):
@@ -63,7 +63,7 @@ def load_dataset(directory):
 		if not isdir(path):
 			continue
 		# load all faces in the subdirectory
-		faces = load_faces(path)
+		faces = load_faces(path, size=size)
 		# create labels
 		labels = [subdir for _ in range(len(faces))]
 		# summarize progress

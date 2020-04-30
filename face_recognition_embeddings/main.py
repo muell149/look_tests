@@ -29,16 +29,18 @@ dataset = "datasets/LookDataSet/"
 trainX, trainy = load_dataset(dataset+'Train/')
 
 # load test dataset
-testX, testy = load_dataset(dataset+'Test/')
+testX, testy = load_dataset(dataset+'Test/',size=30)
 
 testX_faces = testX
 
 # load the facenet model
 
 
+print("Train Embeddings")
 # convert each face in the train set to an embedding
 newTrainX = embedder.embeddings(trainX)
 
+print("\nTest Embeddings")
 # convert each face in the test set to an embedding
 newTestX  = embedder.embeddings(testX)
 
@@ -66,7 +68,7 @@ if testing_accuracy:
 	score_train = accuracy_score(trainy, yhat_train)
 	score_test = accuracy_score(testy, yhat_test)
 	# summarize
-	print('Accuracy: train=%.3f, test=%.3f' % (score_train*100, score_test*100))
+	print('\n\nAccuracy: train=%.3f, test=%.3f\n' % (score_train*100, score_test*100))
 
 if testing_image:
 	selection = choice([i for i in range(testX.shape[0])])
