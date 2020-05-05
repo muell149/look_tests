@@ -26,7 +26,7 @@ dataset = "datasets/LookDataSet/"
 #dataset = "datasets/5-celebrity-faces-dataset/"
 print("\n\nLOAD TESTING")
 # load test dataset
-testX, testy = load_dataset(dataset+'Unknown/',size=30)
+testX, testy = load_dataset(dataset+'Test/',size=30)
 print(testX.shape)
 
 print("\nLOAD TRAINING...")
@@ -34,8 +34,13 @@ print("\nLOAD TRAINING...")
 trainX, trainy = load_dataset(dataset+'Train/')
 print(trainX.shape)
 
-testX_faces = testX
+print("\nLOAD UNKNOWN...")
 
+testuX, testuy = load_dataset(dataset+'Unknown/',size=30)
+print(testuX.shape)
+
+testX_faces = testX
+testuX_faces = testuX
 # load the facenet model
 
 
@@ -45,35 +50,52 @@ newTrainX = embedder.embeddings(trainX)
 # convert each face in the test set to an embedding
 newTestX  = embedder.embeddings(testX)
 
+# convert each face in the unknown test set to an embedding
+newTestuX = embedder.embeddings(testuX)
 
 
 in_encoder = Normalizer(norm='l2')
 trainX = in_encoder.transform(newTrainX)
 testX = in_encoder.transform(newTestX)
+testuX = in_encoder.transform(newTestuX)
 
 # label encode targets
-print("here2")
+
 out_encoder = LabelEncoder()
 out_encoder.fit(trainy)
 trainy = out_encoder.transform(trainy)
 testy = out_encoder.transform(testy)
 # fit model
-print("here1")
+
 model = SVC(kernel='linear', probability=True)
 model.fit(trainX, trainy)
 
 # testing accuracy
 if testing_accuracy:
 	# predict
-	print("here")
+
+	'''Train'''
+	print("\n\nTRAIN")
 	yhat_train = model.predict(trainX)
-	yhat_test = model.predict(testX)
-	print("Finish")
-	# score
 	score_train = accuracy_score(trainy, yhat_train)
+	print(model.predict_proba(trainX))
+	print(model.predict(trainX))
+
+	'''Known'''
+	print("\nKNOWN")
+	yhat_test = model.predict(testX)
 	score_test = accuracy_score(testy, yhat_test)
-	# summarize
+	print(model.predict_proba(testX))
+	print(model.predict(testX))
+
+	'''Unknown'''
+	print("\nUNKNOWN")
+	yhatu_test = model.predict(testuX)
+	print(model.predict_proba(testuX)[0])
+	print(model.predict(testuX)[0])
+
 	print('\n\nAccuracy: train=%.3f, test=%.3f\n' % (score_train*100, score_test*100))
+
 
 if testing_image:
 	selection = choice([i for i in range(testX.shape[0])])
