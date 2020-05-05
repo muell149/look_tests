@@ -17,30 +17,31 @@ from sklearn.svm import SVC
 from matplotlib import pyplot
 
 testing_accuracy 		= True
-testing_image 			= False
+testing_image 			= True
 
 
 embedder = FaceNet()
 
 dataset = "datasets/LookDataSet/"
 #dataset = "datasets/5-celebrity-faces-dataset/"
+print("\n\nLOAD TESTING")
+# load test dataset
+testX, testy = load_dataset(dataset+'Unknown/',size=30)
+print(testX.shape)
 
+print("\nLOAD TRAINING...")
 # load train dataset
 trainX, trainy = load_dataset(dataset+'Train/')
-
-# load test dataset
-testX, testy = load_dataset(dataset+'Test/',size=30)
+print(trainX.shape)
 
 testX_faces = testX
 
 # load the facenet model
 
 
-print("Train Embeddings")
 # convert each face in the train set to an embedding
 newTrainX = embedder.embeddings(trainX)
 
-print("\nTest Embeddings")
 # convert each face in the test set to an embedding
 newTestX  = embedder.embeddings(testX)
 
@@ -51,19 +52,23 @@ trainX = in_encoder.transform(newTrainX)
 testX = in_encoder.transform(newTestX)
 
 # label encode targets
+print("here2")
 out_encoder = LabelEncoder()
 out_encoder.fit(trainy)
 trainy = out_encoder.transform(trainy)
 testy = out_encoder.transform(testy)
 # fit model
+print("here1")
 model = SVC(kernel='linear', probability=True)
 model.fit(trainX, trainy)
 
 # testing accuracy
 if testing_accuracy:
 	# predict
+	print("here")
 	yhat_train = model.predict(trainX)
 	yhat_test = model.predict(testX)
+	print("Finish")
 	# score
 	score_train = accuracy_score(trainy, yhat_train)
 	score_test = accuracy_score(testy, yhat_test)

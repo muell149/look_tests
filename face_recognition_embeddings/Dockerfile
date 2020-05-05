@@ -1,5 +1,5 @@
-FROM ubuntu:18.04
-#FROM nvidia/cuda:10.2-runtime-ubuntu18.04
+#FROM ubuntu:18.04
+FROM nvidia/cuda:10.2-runtime-ubuntu18.04
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
