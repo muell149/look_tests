@@ -1,4 +1,28 @@
-from lib.Pipeline import load_dataset, load_faces
+from lib.Pipeline import DataSet
+import argparse
+
+
+def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--directory",		  "-dir", help="Dataset directory",        type=str,   default="datasets/LookDataSet")
+	parser.add_argument("--extension",        "-ext", help="Dataset images extension", type=str,   default="jpg")
+	parser.add_argument("--size",             "-si",  help="Image size",               type=int,   default=24)
+	args = parser.parse_args()
+	
+	ds = DataSet(
+		directory=args.directory,
+        extension=args.extension,
+        size=args.size
+    )
+	
+	use_store_model = False
+	
+	ds.print_dataset_info()
+	
+	if use_store_model:
+		ds.train_model()
+
+'''
 from keras_facenet import FaceNet
 import glob
 import cv2
@@ -7,7 +31,7 @@ from numpy import load
 import sys
 
 from random import choice
-from numpy import load
+import numpy as np
 from numpy import expand_dims
 
 from sklearn.metrics import accuracy_score
@@ -15,9 +39,17 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
 from sklearn.svm import SVC
 from matplotlib import pyplot
+import os
 
+
+sys.exit()
 testing_accuracy 		= True
-testing_image 			= True
+testing_image 			= False
+
+size = 24
+
+if not os.path.exists('Graphs{}'.format(size)):
+	os.makedirs('Graphs{}'.format(size))
 
 
 embedder = FaceNet()
@@ -26,7 +58,7 @@ dataset = "datasets/LookDataSet/"
 #dataset = "datasets/5-celebrity-faces-dataset/"
 print("\n\nLOAD TESTING")
 # load test dataset
-testX, testy = load_dataset(dataset+'Test/',size=30)
+testX, testy = load_dataset(dataset+'Test/',size=size)
 print(testX.shape)
 
 print("\nLOAD TRAINING...")
@@ -36,7 +68,7 @@ print(trainX.shape)
 
 print("\nLOAD UNKNOWN...")
 
-testuX, testuy = load_dataset(dataset+'Unknown/',size=30)
+testuX, testuy = load_dataset(dataset+'Unknown/',size=size)
 print(testuX.shape)
 
 testX_faces = testX
@@ -74,37 +106,70 @@ model.fit(trainX, trainy)
 if testing_accuracy:
 	# predict
 
-	'''Train'''
+
 	print("\n\nTRAIN")
 	yhat_train = model.predict(trainX)
 	score_train = accuracy_score(trainy, yhat_train)
-	print(model.predict_proba(trainX))
-	print(model.predict(trainX))
 
-	'''Known'''
+
 	print("\nKNOWN")
-	yhat_test = model.predict(testX)
-	score_test = accuracy_score(testy, yhat_test)
-	print(model.predict_proba(testX))
-	print(model.predict(testX))
+	if not os.path.exists('Graphs{}/Known'.format(size)):
+		os.makedirs('Graphs{}/Known'.format(size))
 
-	'''Unknown'''
+	yhat_test = model.predict(testX)
+	prob = []
+	counter=0
+	for prob_vec,class_result in zip(model.predict_proba(testX),yhat_test):
+		
+		pyplot.plot(range(len(prob_vec)),prob_vec,'ro')
+		pyplot.xlabel("Class")
+		pyplot.ylabel("Probability")
+		pyplot.ylim(0.,.6)
+		pyplot.savefig('Graphs{}/Known/plot_class{}_{}.png'.format(size,class_result,counter), dpi=300)
+		pyplot.close()
+		print(prob_vec[class_result],class_result,np.sum(prob_vec))
+		prob.append(prob_vec[class_result])
+		counter = counter +1
+
+	score_test = accuracy_score(testy, yhat_test)
+	print("max_prob=",max(prob), "min_prob=",min(prob))
+
+
 	print("\nUNKNOWN")
+	if not os.path.exists('Graphs{}/Unknown'.format(size)):
+		os.makedirs('Graphs{}/Unknown'.format(size))
+
 	yhatu_test = model.predict(testuX)
-	print(model.predict_proba(testuX)[0])
-	print(model.predict(testuX)[0])
+	prob = []
+	counter =0
+	for prob_vec,class_result in zip(model.predict_proba(testuX),yhatu_test):
+		pyplot.plot(range(len(prob_vec)),prob_vec,'ro')
+		pyplot.xlabel("Class")
+		pyplot.ylabel("Probability")
+		pyplot.ylim(0.,.6)
+		pyplot.savefig('Graphs{}/Unknown/plot_class{}_{}.png'.format(size,class_result,counter), dpi=300)
+		pyplot.close()
+		print(prob_vec[class_result],class_result, np.sum(prob_vec))
+		prob.append(prob_vec[class_result])
+		counter=counter+1
+	print("max_prob=",max(prob), "min_prob=",min(prob))
 
 	print('\n\nAccuracy: train=%.3f, test=%.3f\n' % (score_train*100, score_test*100))
 
 
 if testing_image:
 	selection = choice([i for i in range(testX.shape[0])])
+
 	random_face_pixels = testX_faces[selection]
 	random_face_emb = testX[selection]
+
 	random_face_class = testy[selection]
+
 	random_face_name = out_encoder.inverse_transform([random_face_class])
+
 	# prediction for the face
 	samples = expand_dims(random_face_emb, axis=0)
+
 	yhat_class = model.predict(samples)
 	yhat_prob = model.predict_proba(samples)
 	# get name
@@ -118,3 +183,10 @@ if testing_image:
 	title = '%s (%.3f)' % (predict_names[0], class_probability)
 	pyplot.title(title)
 	pyplot.show()
+'''
+
+
+
+if __name__ == "__main__":
+    main()
+#---------------------------------------------------------------------------------------------------------------------
