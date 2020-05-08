@@ -59,6 +59,7 @@ class DataSet:
 		print("*"*50,"\n*             DATASET INFORMATION                *")
 		print("*"*50,"\n")
 		print("Number of subjects for training:", self.subjects_number)
+		print("Images per subject for training:", len(self.train_images[self.index_to_subject[0]]))
 		print("\n")
 
 	def load_model(self,name,train=False):
