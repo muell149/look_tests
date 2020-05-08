@@ -95,7 +95,7 @@ class DataSet:
 
 	def test_model(self):
 		print("\n\n")
-		print("*"*50,"\n*              START TESTING (Known)               *")
+		print("*"*50,"\n*             START TESTING (Known)              *")
 		print("*"*50,"\n")
 		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size)
 
@@ -116,16 +116,41 @@ class DataSet:
 			y_aux.append(identify_unknown(proba,pred,self.threshold))
 
 		score_test_known = accuracy_score(test_y,y_aux)
-		print("Accuracy on test:",score_test_known*100,"%\n\n")
-		return score_test_known*100
+		print("Accuracy on known:",score_test_known*100,"%\n\n")
+
+		print("\n\n")
+		print("*"*50,"\n*            START TESTING (Unknown)             *")
+		print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size)
+
+		test_embeddings = embedder.embeddings(test_x)
+		test_x = Normalizer(norm='l2').transform(test_embeddings)
+
+		test_y = [-1 for i in range(len(test_y_subjects))]
+
+		test_y = np.asarray(test_y)
+
+		y_test_pred = self.model.predict(test_x)
+		y_test_proba = self.model.predict_proba(test_x)
+		y_aux=[]
+		for pred, proba in zip(y_test_pred,y_test_proba):
+			y_aux.append(identify_unknown(proba,pred,self.threshold))
+
+		score_test_unknown = accuracy_score(test_y,y_aux)
+		print("Accuracy on unknown:",score_test_unknown*100,"%\n\n")
+
+		return score_test_known*100, score_test_unknown*100
 
 def identify_unknown(x,index,t):
-	np.delete(x,index)
-	for i in x:
-		if i<=t:
-			return index
+	limit=t*x[index]
+	new_x=np.delete(x,index)
+	for i in new_x:
+		if i>=limit:
+			ind = -1
+			break
 		else:
-			return -1
+			ind = index
+	return ind
 
 def load_set(set,size):
 	images = []
@@ -140,7 +165,6 @@ def load_set(set,size):
 
 
 def extract_face(filename,size):
-
 	image = cv2.imread(filename)
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -155,80 +179,3 @@ def extract_face(filename,size):
 	face_array = cv2.resize(face,(size,size),interpolation=cv2.INTER_NEAREST)
 
 	return face_array
-
-
-'''
-def load_dataset(directory, size=160):
-	X, y = list(), list()
-	# enumerate folders, on per class
-	for subdir in listdir(directory):
-		# path
-		path = directory + subdir + '/'
-		# skip any files that might be in the dir
-		if not isdir(path):
-			continue
-		# load all faces in the subdirectory
-		faces = load_faces(path, size=size)
-		# create labels
-		labels = [subdir for _ in range(len(faces))]
-		# summarize progress
-		print('>loaded %d examples for class: %s' % (len(faces), subdir))
-		# store
-		X.extend(faces)
-		y.extend(labels)
-	return asarray(X), asarray(y)
-
-
-import cv2
-import logging
-import numpy as np
-import os
-import time
-from PIL import Image
-# face detection for the 5 Celebrity Faces Dataset
-from os import listdir
-from os.path import isdir
-from numpy import asarray
-from mtcnn.mtcnn import MTCNN
-import glob
-
-
-
-# extract a single face from a given photograph
-
-
-
-# load images and extract faces for all images in a directory
-def load_faces(directory, size=160):
-	faces = list()
-	# enumerate files
-	for filename in listdir(directory):
-		# path
-		path = directory + filename
-		# get face
-		face = extract_face(path,required_size=(size, size))
-		# store
-		faces.append(face)
-	return faces
- 
-# load a dataset that contains one subdir for each class that in turn contains images
-def load_dataset(directory, size=160):
-	X, y = list(), list()
-	# enumerate folders, on per class
-	for subdir in listdir(directory):
-		# path
-		path = directory + subdir + '/'
-		# skip any files that might be in the dir
-		if not isdir(path):
-			continue
-		# load all faces in the subdirectory
-		faces = load_faces(path, size=size)
-		# create labels
-		labels = [subdir for _ in range(len(faces))]
-		# summarize progress
-		print('>loaded %d examples for class: %s' % (len(faces), subdir))
-		# store
-		X.extend(faces)
-		y.extend(labels)
-	return asarray(X), asarray(y)
-'''

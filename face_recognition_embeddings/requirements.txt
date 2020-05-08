@@ -1,6 +1,6 @@
 keras-facenet
-Pillow
 mtcnn
 opencv-python
 scikit-learn
 matplotlib
+tensorflow
