@@ -1,12 +1,10 @@
 # Look Tests
 
-## Setup:
-
-
 ## Introduction 
 This is a full face detection and recognition system. For the detection part [MTCNN](https://github.com/ipazc/mtcnn) package is used. The recognition is achieved by using both a sparse representation method and using a Keras implementation of [FaceNet](https://github.com/faustomorales/keras-facenet) to get the embeddings.
 
 ## Getting Started
+
 ### Embeddings
 1.	Installation process
     
