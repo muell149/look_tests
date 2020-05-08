@@ -15,7 +15,7 @@ detector = MTCNN()
 embedder = FaceNet()
 
 class DataSet:
-	def __init__(self, directory, extension, size):
+	def __init__(self, directory, extension, size, threshold):
 
 		self.train_images = {}
 		self.test_images_known = {}
@@ -23,6 +23,7 @@ class DataSet:
 		self.test_images_group = []
 		self.classes = {}
 		self.size=size
+		self.threshold= threshold
 
 		aux = glob.glob( directory + "/Train/*" )
 		for d in aux:
@@ -30,9 +31,12 @@ class DataSet:
 			self.train_images[d.split("/")[-1]]=images
 
 		self.subjects_number = len(self.train_images)
-		self.dictionary = {}
+		self.index_to_subject = {}
+		self.subject_to_index = {}
+
 		for i,subject in enumerate(self.train_images):
-			self.dictionary[i]=subject
+			self.index_to_subject[i]=subject
+			self.subject_to_index[subject]=i
 
 		aux = glob.glob( directory + "/Test/*" )
 		for d in aux:
@@ -57,33 +61,71 @@ class DataSet:
 		print("Number of subjects for training:", self.subjects_number)
 		print("\n")
 
-	def train_model(self,name):
-		if not os.path.exists('models'):
-			os.makedirs('models')
+	def load_model(self,name,train=False):
+		if train:
+			print("\n\n")
+			print("*"*50,"\n*                START TRAINING                  *")
+			print("*"*50,"\n")
+			if not os.path.exists('models'):
+				os.makedirs('models')
 
-		# Getting the arrays for the training
-		train_y, train_x = load_set(self.train_images, size = 160)
+			# Getting the arrays for the training
+			train_y_subjects, train_x = load_set(self.train_images, size = 160)
 
-		# Getting embeddings from FaceNet and normalizing them
-		train_embeddings = embedder.embeddings(train_x)
-		train_x = Normalizer(norm='l2').transform(train_embeddings)
+			# Getting embeddings from FaceNet and normalizing them
+			train_embeddings = embedder.embeddings(train_x)
+			train_x = Normalizer(norm='l2').transform(train_embeddings)
+
+			# Encoder in order to associate labels with a certain number
+			train_y = []
+			for subject in train_y_subjects:
+				train_y.append(self.subject_to_index[subject])
+
+			train_y = np.asarray(train_y)
+
+			model = SVC(kernel='linear', probability=True)
+
+			model.fit(train_x, train_y)
+
+			pickle.dump(model, open('models/{}.sav'.format(name), 'wb'))
+
+			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
+		else:
+			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
+
+	def test_model(self):
+		print("\n\n")
+		print("*"*50,"\n*              START TESTING (Known)               *")
+		print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size)
+
+		test_embeddings = embedder.embeddings(test_x)
+		test_x = Normalizer(norm='l2').transform(test_embeddings)
 
 		# Encoder in order to associate labels with a certain number
-		out_encoder = LabelEncoder()
-		out_encoder.fit(train_y)
-		train_y = out_encoder.transform(train_y)
+		test_y = []
+		for subject in test_y_subjects:
+			test_y.append(self.subject_to_index[subject])
 
-		model = SVC(kernel='linear', probability=True)
+		test_y = np.asarray(test_y)
 
-		model.fit(train_x, train_y)
+		y_test_pred = self.model.predict(test_x)
+		y_test_proba = self.model.predict_proba(test_x)
+		y_aux=[]
+		for pred, proba in zip(y_test_pred,y_test_proba):
+			y_aux.append(identify_unknown(proba,pred,self.threshold))
 
-		pickle.dump(model, open('models/model.sav', 'wb'))
-	
-	def test_model(self):
+		score_test_known = accuracy_score(test_y,y_aux)
+		print("Accuracy on test:",score_test_known*100,"%\n\n")
+		return score_test_known*100
 
-		loaded_model = pickle.load(open('models/model.sav', 'rb'))
-
-
+def identify_unknown(x,index,t):
+	np.delete(x,index)
+	for i in x:
+		if i<=t:
+			return index
+		else:
+			return -1
 
 def load_set(set,size):
 	images = []
@@ -93,6 +135,7 @@ def load_set(set,size):
 			labels.append(person)
 			images.append(extract_face(path,size))
 		print("Got",len(set[person]),"for subject",person)
+	print("\n")
 	return np.asarray(labels),np.asarray(images)
 
 
