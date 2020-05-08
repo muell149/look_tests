@@ -4,22 +4,20 @@
 
 
 ## Introduction 
-This is a full face detection and recognition system. For the detection part [MTCNN](https://github.com/ipazc/mtcnn) package is used. The recognition is achieved by using a sparse representation method.
+This is a full face detection and recognition system. For the detection part [MTCNN](https://github.com/ipazc/mtcnn) package is used. The recognition is achieved by using both a sparse representation method and using a Keras implementation of [FaceNet](https://github.com/faustomorales/keras-facenet) to get the embeddings.
 
 ## Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
+### Embeddings
 1.	Installation process
+    
+    You can simply clone this repository. After that, you need to unzip the simple dataset contained in face_recognition_embeddings/datasets.
+
 2.	Software dependencies
-3.	Latest releases
-4.	API references
+    
+    You can see the necessary pip packages on the file face_recognition_embeddings/requirements.txt. Also, install cmake on your system, in order to install it on a debian-based distribution run
+    
+        sudo apt-get install -y cmake
 
-## Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+3.  Inside face_recognition_embeddings directory, run the command
 
-## Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+        python3 main.py
