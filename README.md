@@ -8,7 +8,7 @@ This is a full face detection and recognition system. For the detection part [MT
 ### Embeddings
 1.	Installation process
     
-    You can simply clone this repository. After that, you need to unzip the simple dataset contained in face_recognition_embeddings/datasets.
+    You can simply clone this repository. After that, you need to unzip the example dataset contained in face_recognition_embeddings/datasets.
 
 2.	Software dependencies
     
