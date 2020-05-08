@@ -142,6 +142,22 @@ class DataSet:
 
 		return score_test_known*100, score_test_unknown*100
 
+	def classify_image(self,filename):
+		im = extract_face(filename,self.size)
+
+		emb_im = embedder.embeddings(np.array([im]))
+
+		pred = self.model.predict(emb_im)
+		pred_proba = self.model.predict_proba(emb_im)
+
+		result = identify_unknown(pred_proba[0], pred[0], self.threshold)
+
+		if result == -1:
+			return "Unknown"
+		else:
+			return self.index_to_subject[result] 
+
+
 def identify_unknown(x,index,t):
 	limit=t*x[index]
 	new_x=np.delete(x,index)

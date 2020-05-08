@@ -19,7 +19,12 @@ def main():
 	
 	ds.print_dataset_info()
 	ds.load_model(name='model',train=False)
-	ds.test_model()
+	#ds.test_model()
+	
+	print("TESTING SINGLE IMAGE\n")
+
+	filename='datasets/LookDataSet/Test/Emma_Watson/Emma_Watson_018_resized.jpg'
+	print("Image was classified as",ds.classify_image(filename))
 
 if __name__ == "__main__":
     main()
