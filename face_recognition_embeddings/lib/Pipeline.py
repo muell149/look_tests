@@ -142,9 +142,7 @@ class DataSet:
 
 		return score_test_known*100, score_test_unknown*100
 
-	def classify_image(self,filename):
-		im = extract_face(filename,self.size)
-
+	def classify_image(self,im):
 		emb_im = embedder.embeddings(np.array([im]))
 
 		pred = self.model.predict(emb_im)
