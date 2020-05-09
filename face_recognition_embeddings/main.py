@@ -53,8 +53,11 @@ def main():
 
 				face = img[y1:y2, x1:x2]
 
-				face_array = cv2.resize(face,(ds.size,ds.size),interpolation=cv2.INTER_NEAREST)
-				
+				if ds.size == -1:
+					face_array = face
+				else:
+					face_array = cv2.resize(face,(ds.size,ds.size),interpolation=cv2.INTER_NEAREST)
+
 				identity = ds.classify_image(face_array)
 
 				if identity is not None:

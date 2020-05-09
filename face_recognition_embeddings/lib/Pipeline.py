@@ -60,6 +60,7 @@ class DataSet:
 		print("*"*50,"\n")
 		print("Number of subjects for training:", self.subjects_number)
 		print("Images per subject for training:", len(self.train_images[self.index_to_subject[0]]))
+		print("Size of the images to identify: ", self.size)
 		print("\n")
 
 	def load_model(self,name,train=False):
@@ -191,6 +192,8 @@ def extract_face(filename,size):
 
 	face = image[y1:y2, x1:x2]
 
-	face_array = cv2.resize(face,(size,size),interpolation=cv2.INTER_NEAREST)
-
-	return face_array
+	if size == -1:
+		return face
+	else:
+		face_array = cv2.resize(face,(size,size),interpolation=cv2.INTER_NEAREST)
+		return face_array
