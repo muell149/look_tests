@@ -156,6 +156,52 @@ class DataSet:
 		else:
 			return self.index_to_subject[result] 
 
+	def testing_webcam(self, video_path = 0):
+		
+		print("TESTING WEBCAM")
+
+		cap = cv2.VideoCapture(video_path)
+
+		color = (246, 181, 100)
+
+		while True:
+			ok, frame = cap.read()
+			if ok:
+
+				img = frame
+
+				preview = img.copy()
+
+				detections = detector.detect_faces(img)
+				
+				if not detections:
+					continue
+				for detection in detections:
+					box = detection['box']
+
+					face = img[abs(box[1]):abs(box[1])+abs(box[3]), abs(box[0]):abs(box[0])+abs(box[2])]
+
+					if self.size == -1:
+						face_array = face
+					else:
+						face_array = cv2.resize(face,(self.size,self.size),interpolation=cv2.INTER_NEAREST)
+
+					identity = self.classify_image(face_array)
+
+					if identity is not None:
+						
+						cv2.rectangle(preview,(abs(box[0]), abs(box[1])), (abs(box[0])+abs(box[2]), abs(box[1])+abs(box[3])),color, 1)
+
+						cv2.putText(preview, identity, (abs(box[0]), abs(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1,cv2.LINE_AA)
+						
+						print(identity)
+					
+			cv2.imshow("preview", preview)
+			
+			k = cv2.waitKey(0)
+			if k == 27:
+				break
+
 
 def identify_unknown(x,index,t):
 	limit=t*x[index]
