@@ -4,6 +4,7 @@ from mtcnn.mtcnn import MTCNN
 import numpy as np
 from keras_facenet import FaceNet
 import os
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
@@ -27,6 +28,7 @@ class DataSet:
 
 		aux = glob.glob( directory + "/Train/*" )
 		for d in aux:
+			d=d.replace("\\","/")
 			images = glob.glob(d + "/*." + extension)
 			self.train_images[d.split("/")[-1]]=images
 
@@ -40,16 +42,19 @@ class DataSet:
 
 		aux = glob.glob( directory + "/Test/*" )
 		for d in aux:
+			d=d.replace("\\","/")
 			images = glob.glob(d + "/*." + extension)
 			self.test_images_known[d.split("/")[-1]]=images
 
 		aux = glob.glob( directory + "/Unknown/*" )
 		for d in aux:
+			d=d.replace("\\","/")
 			images = glob.glob(d + "/*." + extension)
 			self.test_images_unknown[d.split("/")[-1]]=images
 
 		aux = glob.glob( directory + "/Group" )
 		for d in aux:
+			d=d.replace("\\","/")
 			images = glob.glob(d+ "/*." + extension)
 			for i in images:
 				self.test_images_group.append(i)
@@ -95,7 +100,7 @@ class DataSet:
 		else:
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
-	def test_model(self):
+	def test_model(self,graphs=False):
 		print("\n\n")
 		print("*"*50,"\n*             START TESTING (Known)              *")
 		print("*"*50,"\n")
@@ -114,8 +119,30 @@ class DataSet:
 		y_test_pred = self.model.predict(test_x)
 		y_test_proba = self.model.predict_proba(test_x)
 		y_aux=[]
+		lim=[]
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			y_aux.append(identify_unknown(proba,pred,self.threshold))
+			result,limit=identify_unknown(proba,pred,self.threshold)
+			y_aux.append(result)
+			lim.append(limit)
+
+		if graphs==True:
+
+			if not os.path.exists('Graphs_{}'.format(self.size)):
+				os.makedirs('Graphs_{}'.format(self.size))
+
+			if not os.path.exists('Graphs_{}/Known'.format(self.size)):
+				os.makedirs('Graphs_{}/Known'.format(self.size))
+
+			counter=0
+			for prob_vec,class_result,limit in zip(y_test_proba,y_test_pred,lim):
+				plt.axhline(y=limit, color='b', linestyle='--')
+				plt.plot(range(len(prob_vec)),prob_vec,'ro')
+				plt.xlabel("Class")
+				plt.ylabel("Probability")
+				plt.ylim(0.,.6)
+				plt.savefig('Graphs_{}/Known/plot_class_{}_{}.png'.format(self.size,class_result,counter), dpi=300)
+				plt.close()
+				counter = counter +1
 
 		score_test_known = accuracy_score(test_y,y_aux)
 		print("Accuracy on known:",score_test_known*100,"%\n\n")
@@ -135,8 +162,27 @@ class DataSet:
 		y_test_pred = self.model.predict(test_x)
 		y_test_proba = self.model.predict_proba(test_x)
 		y_aux=[]
+		lim=[]
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			y_aux.append(identify_unknown(proba,pred,self.threshold))
+			result,limit=identify_unknown(proba,pred,self.threshold)
+			y_aux.append(result)
+			lim.append(limit)
+
+		if graphs==True:
+
+			if not os.path.exists('Graphs_{}/Unknown'.format(self.size)):
+				os.makedirs('Graphs_{}/Unknown'.format(self.size))
+
+			counter=0
+			for prob_vec,class_result,limit in zip(y_test_proba,y_test_pred,lim):
+				plt.axhline(y=limit, color='b', linestyle='--')
+				plt.plot(range(len(prob_vec)),prob_vec,'ro')
+				plt.xlabel("Class")
+				plt.ylabel("Probability")
+				plt.ylim(0.,1.05)
+				plt.savefig('Graphs_{}/Unknown/plot_class_{}_{}.png'.format(self.size,class_result,counter), dpi=300)
+				plt.close()
+				counter = counter +1
 
 		score_test_unknown = accuracy_score(test_y,y_aux)
 		print("Accuracy on unknown:",score_test_unknown*100,"%\n\n")
@@ -207,7 +253,6 @@ class DataSet:
 			if k == 27:
 				break
 
-
 def identify_unknown(x,index,t):
 	limit=t*x[index]
 	new_x=np.delete(x,index)
@@ -217,7 +262,7 @@ def identify_unknown(x,index,t):
 			break
 		else:
 			ind = index
-	return ind
+	return ind,limit
 
 def load_set(set,size):
 	images = []
