@@ -20,14 +20,14 @@ def main():
     )
 	
 	ds.print_dataset_info()
-	ds.load_model(name='model',train=False)
-	#ds.test_model()
-	
-	# print("TESTING SINGLE IMAGE\n")
 
-	# filename='datasets/LookDataSet/Test/Emma_Watson/Emma_Watson_018_resized.jpg'
-	# im = extract_face(filename,ds.size)
-	# print("Image was classified as",ds.classify_image(im))
+	ds.load_model(name='model',train=False)
+	
+	filename='datasets/LookDataSet/Test/Emma_Watson/Emma_Watson_018_resized.jpg'
+	ds.single_image(filename=filename)
+	
+	ds.test_model()
+	
 	ds.testing_webcam()
 
 

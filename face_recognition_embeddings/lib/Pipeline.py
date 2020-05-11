@@ -156,6 +156,11 @@ class DataSet:
 		else:
 			return self.index_to_subject[result] 
 
+	def single_image(self,filename):
+		print("TESTING SINGLE IMAGE\n")
+		im = extract_face(filename,self.size)
+		print("Image was classified as",self.classify_image(im))
+
 	def testing_webcam(self, video_path = 0):
 		
 		print("TESTING WEBCAM")
