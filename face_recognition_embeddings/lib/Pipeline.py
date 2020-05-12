@@ -18,7 +18,7 @@ detector = MTCNN()
 embedder = FaceNet()
 
 class DataSet:
-	def __init__(self, directory, extension, size, threshold, scope_limit, intercept_limit):
+	def __init__(self, directory, extension, size, scope_limit, intercept_limit):
 
 		self.train_images = {}
 		self.test_images_known = {}
@@ -26,7 +26,6 @@ class DataSet:
 		self.test_images_group = []
 		self.classes = {}
 		self.size=size
-		self.threshold= threshold
 		self.scope_limit = scope_limit
 		self.intercept_limit = intercept_limit
 
