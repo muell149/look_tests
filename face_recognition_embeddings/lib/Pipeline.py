@@ -10,13 +10,15 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LinearRegression
+import heapq
 import pickle
 
 detector = MTCNN()
 embedder = FaceNet()
 
 class DataSet:
-	def __init__(self, directory, extension, size, threshold):
+	def __init__(self, directory, extension, size, threshold, scope_limit, intercept_limit):
 
 		self.train_images = {}
 		self.test_images_known = {}
@@ -25,6 +27,8 @@ class DataSet:
 		self.classes = {}
 		self.size=size
 		self.threshold= threshold
+		self.scope_limit = scope_limit
+		self.intercept_limit = intercept_limit
 
 		aux = glob.glob( directory + "/Train/*" )
 		for d in aux:
@@ -118,34 +122,41 @@ class DataSet:
 
 		y_test_pred = self.model.predict(test_x)
 		y_test_proba = self.model.predict_proba(test_x)
-		y_aux=[]
-		lim=[]
+		real_pred=[]
+		slopes=[]
+		intercepts=[]
+		y_proba_new = []
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			result,limit=identify_unknown(proba,pred,self.threshold)
-			y_aux.append(result)
-			lim.append(limit)
+			result, y_proba, slope, intercept=identify_unknown(probabilities=proba,index=pred,scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
+			real_pred.append(result)
+			slopes.append(slope)
+			intercepts.append(intercept)
+			y_proba_new.append(y_proba)
 
 		if graphs==True:
-
-			if not os.path.exists('Graphs_{}'.format(self.size)):
-				os.makedirs('Graphs_{}'.format(self.size))
 
 			if not os.path.exists('Graphs_{}/Known'.format(self.size)):
 				os.makedirs('Graphs_{}/Known'.format(self.size))
 
 			counter=0
-			for prob_vec,class_result,limit in zip(y_test_proba,y_test_pred,lim):
-				plt.axhline(y=limit, color='b', linestyle='--')
-				plt.plot(range(len(prob_vec)),prob_vec,'ro')
+			for prob_vec,class_result,slope,intercept in zip(y_proba_new,y_test_pred,slopes,intercepts):
+				x = range(len(prob_vec))
+				x_val = np.array(x)
+				y_val = intercept + slope*x_val
+				plt.plot(x,prob_vec,'ro')
+				plt.plot(x_val,y_val,'--')
 				plt.xlabel("Class")
 				plt.ylabel("Probability")
-				plt.ylim(0.,.6)
+				plt.ylim(0.,1.05)
 				plt.savefig('Graphs_{}/Known/plot_class_{}_{}.png'.format(self.size,class_result,counter), dpi=300)
 				plt.close()
 				counter = counter +1
 
-		score_test_known = accuracy_score(test_y,y_aux)
+		score_test_known = accuracy_score(test_y,real_pred)
 		print("Accuracy on known:",score_test_known*100,"%\n\n")
+
+
+
 
 		print("\n\n")
 		print("*"*50,"\n*            START TESTING (Unknown)             *")
@@ -161,12 +172,16 @@ class DataSet:
 
 		y_test_pred = self.model.predict(test_x)
 		y_test_proba = self.model.predict_proba(test_x)
-		y_aux=[]
-		lim=[]
+		real_pred=[]
+		slopes=[]
+		intercepts=[]
+		y_proba_new = []
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			result,limit=identify_unknown(proba,pred,self.threshold)
-			y_aux.append(result)
-			lim.append(limit)
+			result, y_proba, slope, intercept =identify_unknown(probabilities=proba,index=pred,scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
+			real_pred.append(result)
+			slopes.append(slope)
+			intercepts.append(intercept)
+			y_proba_new.append(y_proba)
 
 		if graphs==True:
 
@@ -174,9 +189,12 @@ class DataSet:
 				os.makedirs('Graphs_{}/Unknown'.format(self.size))
 
 			counter=0
-			for prob_vec,class_result,limit in zip(y_test_proba,y_test_pred,lim):
-				plt.axhline(y=limit, color='b', linestyle='--')
-				plt.plot(range(len(prob_vec)),prob_vec,'ro')
+			for prob_vec,class_result,slope,intercept in zip(y_proba_new,y_test_pred,slopes,intercepts):
+				x = range(len(prob_vec))
+				x_val = np.array(x)
+				y_val = intercept + slope*x_val
+				plt.plot(x,prob_vec,'ro')
+				plt.plot(x_val,y_val,'--')
 				plt.xlabel("Class")
 				plt.ylabel("Probability")
 				plt.ylim(0.,1.05)
@@ -184,7 +202,8 @@ class DataSet:
 				plt.close()
 				counter = counter +1
 
-		score_test_unknown = accuracy_score(test_y,y_aux)
+		score_test_unknown = accuracy_score(test_y,real_pred)
+
 		print("Accuracy on unknown:",score_test_unknown*100,"%\n\n")
 
 		return score_test_known*100, score_test_unknown*100
@@ -195,7 +214,7 @@ class DataSet:
 		pred = self.model.predict(emb_im)
 		pred_proba = self.model.predict_proba(emb_im)
 
-		result = identify_unknown(pred_proba[0], pred[0], self.threshold)
+		result,_,_,_ = identify_unknown(probabilities=pred_proba[0], index=pred[0], scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
 
 		if result == -1:
 			return "Unknown"
@@ -253,16 +272,28 @@ class DataSet:
 			if k == 27:
 				break
 
-def identify_unknown(x,index,t):
-	limit=t*x[index]
-	new_x=np.delete(x,index)
-	for i in new_x:
-		if i>=limit:
-			ind = -1
-			break
-		else:
-			ind = index
-	return ind,limit
+def identify_unknown(probabilities,index,scope_limit,intercept_limit):
+	new_x = []
+	maximum = probabilities[index]
+	for v in probabilities:
+		aux = v/maximum
+		new_x.append(aux)
+
+	y = np.delete(new_x,index)
+	x = np.array([i for i in range(len(y))]).reshape((-1,1))
+
+	regressor = LinearRegression()
+	model_regressor = regressor.fit(x,y)
+
+	slope = model_regressor.coef_
+	intercept = model_regressor.intercept_
+
+	if abs(slope)>=scope_limit or intercept>=intercept_limit:
+		ind = -1
+	else:
+		ind = index
+	
+	return ind, new_x, slope, intercept
 
 def load_set(set,size):
 	images = []
