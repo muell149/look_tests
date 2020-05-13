@@ -18,7 +18,7 @@ detector = MTCNN()
 embedder = FaceNet()
 
 class DataSet:
-	def __init__(self, directory, extension, size, scope_limit, intercept_limit):
+	def __init__(self, directory, extension, size, slope_limit, intercept_limit):
 
 		self.train_images = {}
 		self.test_images_known = {}
@@ -26,7 +26,7 @@ class DataSet:
 		self.test_images_group = []
 		self.classes = {}
 		self.size=size
-		self.scope_limit = scope_limit
+		self.slope_limit = slope_limit
 		self.intercept_limit = intercept_limit
 
 		aux = glob.glob( directory + "/Train/*" )
@@ -69,7 +69,7 @@ class DataSet:
 		print("Number of subjects for training:", self.subjects_number)
 		print("Images per subject for training:", len(self.train_images[self.index_to_subject[0]]))
 		print("Size of the images to identify: ", self.size)
-		print("Scope limit:	", self.scope_limit)
+		print("Slope limit:	", self.slope_limit)
 		print("Intercept limit:	", self.intercept_limit)
 		print("\n")
 
@@ -82,7 +82,7 @@ class DataSet:
 				os.makedirs('models')
 
 			# Getting the arrays for the training
-			train_y_subjects, train_x = load_set(self.train_images, size = 160)
+			train_y_subjects, train_x = load_set(self.train_images, size = 160, print_info=True)
 
 			# Getting embeddings from FaceNet and normalizing them
 			train_embeddings = embedder.embeddings(train_x)
@@ -129,7 +129,7 @@ class DataSet:
 		intercepts=[]
 		y_proba_new = []
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			result, y_proba, slope, intercept=identify_unknown(probabilities=proba,index=pred,scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
+			result, y_proba, slope, intercept=identify_unknown(probabilities=proba,index=pred,slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
 			real_pred.append(result)
 			slopes.append(slope)
 			intercepts.append(intercept)
@@ -198,7 +198,7 @@ class DataSet:
 		intercepts=[]
 		y_proba_new = []
 		for pred, proba in zip(y_test_pred,y_test_proba):
-			result, y_proba, slope, intercept =identify_unknown(probabilities=proba,index=pred,scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
+			result, y_proba, slope, intercept =identify_unknown(probabilities=proba,index=pred,slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
 			real_pred.append(result)
 			slopes.append(slope)
 			intercepts.append(intercept)
@@ -235,7 +235,7 @@ class DataSet:
 		pred = self.model.predict(emb_im)
 		pred_proba = self.model.predict_proba(emb_im)
 
-		result,_,_,_ = identify_unknown(probabilities=pred_proba[0], index=pred[0], scope_limit=self.scope_limit,intercept_limit=self.intercept_limit)
+		result,_,_,_ = identify_unknown(probabilities=pred_proba[0], index=pred[0], slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
 
 		if result == -1:
 			return "Unknown"
@@ -293,7 +293,7 @@ class DataSet:
 			if k == 27:
 				break
 
-def identify_unknown(probabilities,index,scope_limit,intercept_limit):
+def identify_unknown(probabilities,index,slope_limit,intercept_limit):
 	new_x = []
 	maximum = probabilities[index]
 	for v in probabilities:
@@ -309,7 +309,7 @@ def identify_unknown(probabilities,index,scope_limit,intercept_limit):
 	slope = model_regressor.coef_
 	intercept = model_regressor.intercept_
 
-	if abs(slope)>=scope_limit or intercept>=intercept_limit:
+	if abs(slope)>=slope_limit or intercept>=intercept_limit:
 		ind = -1
 	else:
 		ind = index
