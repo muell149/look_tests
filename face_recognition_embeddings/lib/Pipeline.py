@@ -69,6 +69,8 @@ class DataSet:
 		print("Number of subjects for training:", self.subjects_number)
 		print("Images per subject for training:", len(self.train_images[self.index_to_subject[0]]))
 		print("Size of the images to identify: ", self.size)
+		print("Scope limit:	", self.scope_limit)
+		print("Intercept limit:	", self.intercept_limit)
 		print("\n")
 
 	def load_model(self,name,train=False):
@@ -103,11 +105,12 @@ class DataSet:
 		else:
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
-	def test_model(self,graphs=False,print_detailed=False):
-		print("\n\n")
-		print("*"*50,"\n*             START TESTING (Known)              *")
-		print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size)
+	def test_model(self,graphs=False,print_info=True,print_detail=False):
+		if print_info:
+			print("\n\n")
+			print("*"*50,"\n*             START TESTING (Known)              *")
+			print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size, print_info=print_info)
 
 		test_embeddings = embedder.embeddings(test_x)
 		test_x = Normalizer(norm='l2').transform(test_embeddings)
@@ -132,7 +135,7 @@ class DataSet:
 			intercepts.append(intercept)
 			y_proba_new.append(y_proba)
 
-		if print_detailed==True:
+		if print_detail==True:
 
 			print("\n*************************************************************************")
 			print("*                       Testing known images                            *")   
@@ -171,15 +174,15 @@ class DataSet:
 				counter = counter +1
 
 		score_test_known = accuracy_score(test_y,real_pred)
-		print("\nAccuracy on known:",score_test_known*100,"%\n\n")
+		print("Accuracy on known:",score_test_known*100,"%\n\n")
 
 
 
-
-		print("\n\n")
-		print("*"*50,"\n*            START TESTING (Unknown)             *")
-		print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size)
+		if print_info:
+			print("\n\n")
+			print("*"*50,"\n*            START TESTING (Unknown)             *")
+			print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size,print_info=print_info)
 
 		test_embeddings = embedder.embeddings(test_x)
 		test_x = Normalizer(norm='l2').transform(test_embeddings)
@@ -313,8 +316,9 @@ def identify_unknown(probabilities,index,scope_limit,intercept_limit):
 	
 	return ind, new_x, slope, intercept
 
-def load_set(set,size):
-	print("\nLoading set...\n")
+def load_set(set,size,print_info):
+	if print_info:
+		print("\nLoading set...\n")
 	images = []
 	labels = []
 	for person in set:
@@ -325,9 +329,10 @@ def load_set(set,size):
 			else:
 				images.append(a)
 				labels.append(person)
-
-		print("Got",len(set[person]),"images for subject",person)
-	print("\n")
+		if print_info:
+			print("Got",len(set[person]),"images for subject",person)
+	if print_info:
+		print("\n")
 	return np.asarray(labels),np.asarray(images)
 
 
