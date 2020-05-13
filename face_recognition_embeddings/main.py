@@ -20,12 +20,12 @@ def main():
     )
 	
 	ds.print_dataset_info()
-	ds.load_model(name='model',train=False)
+	ds.load_model(name='model',train=True)
 	
 	# filename='datasets/LookDataSet/Test/Emma_Watson/Emma_Watson_018_resized.jpg'
 	# ds.single_image(filename=filename)
 	
-	ds.test_model(graphs=True)
+	ds.test_model(graphs=True,print_detailed=True)
 	
 	#ds.testing_webcam()
 

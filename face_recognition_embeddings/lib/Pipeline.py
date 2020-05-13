@@ -103,7 +103,7 @@ class DataSet:
 		else:
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
-	def test_model(self,graphs=False):
+	def test_model(self,graphs=False,print_detailed=False):
 		print("\n\n")
 		print("*"*50,"\n*             START TESTING (Known)              *")
 		print("*"*50,"\n")
@@ -132,6 +132,25 @@ class DataSet:
 			intercepts.append(intercept)
 			y_proba_new.append(y_proba)
 
+		if print_detailed==True:
+
+			print("\n*************************************************************************")
+			print("*                       Testing known images                            *")   
+			print("*************************************************************************")
+			print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+			print("------------------------------|-------------------------------|----------")
+			for pred, test in zip(real_pred,test_y):
+				if pred==-1:
+					result="incorrect"
+					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test], "* NOT IN DB *", result))
+				else:
+					if pred==test:
+						result="correct"
+					else:
+						result="incorrect"
+					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test],self.index_to_subject[pred], result))
+
+
 		if graphs==True:
 
 			if not os.path.exists('Graphs_{}/Known'.format(self.size)):
@@ -152,7 +171,7 @@ class DataSet:
 				counter = counter +1
 
 		score_test_known = accuracy_score(test_y,real_pred)
-		print("Accuracy on known:",score_test_known*100,"%\n\n")
+		print("\nAccuracy on known:",score_test_known*100,"%\n\n")
 
 
 
@@ -295,13 +314,19 @@ def identify_unknown(probabilities,index,scope_limit,intercept_limit):
 	return ind, new_x, slope, intercept
 
 def load_set(set,size):
+	print("\nLoading set...\n")
 	images = []
 	labels = []
 	for person in set:
 		for path in set[person]:
-			labels.append(person)
-			images.append(extract_face(path,size))
-		print("Got",len(set[person]),"for subject",person)
+			a = extract_face(path,size)
+			if a is None:
+				print("No face detected in file:",path)
+			else:
+				images.append(a)
+				labels.append(person)
+
+		print("Got",len(set[person]),"images for subject",person)
 	print("\n")
 	return np.asarray(labels),np.asarray(images)
 
@@ -311,6 +336,8 @@ def extract_face(filename,size):
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 	results = detector.detect_faces(image)
+	if not results:
+		return None
 
 	x1, y1, width, height = results[0]['box']
 	x1, y1 = abs(x1), abs(y1)
