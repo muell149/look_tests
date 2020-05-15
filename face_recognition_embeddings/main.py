@@ -39,7 +39,7 @@ def main():
 	#filename='datasets/LookDataSet/Test/Emma_Watson/Emma_Watson_018_resized.jpg'
 	#ds.single_image(filename=filename)
 	
-	ds.test_model(graphs=False,print_detail=False)
+	#ds.test_model(graphs=False,print_detail=False)
 	
 	#ds.testing_webcam()
 
