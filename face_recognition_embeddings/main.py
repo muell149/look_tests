@@ -22,7 +22,7 @@ def main():
 	parser.add_argument("--extension",			"-ext",	help="Dataset images extension",	type=str,	default="jpg")
 	parser.add_argument("--size",				"-si",	help="Image size",					type=int,	default=24)
 	parser.add_argument("--slope_limit",		"-sl",	help="Slope Limit",					type=float, default=.5)
-	parser.add_argument("--intercept_limit",	"-il",	help="Intercept Limit",				type=float,	default=.1778)
+	parser.add_argument("--intercept_limit",	"-il",	help="Intercept Limit",				type=float,	default=.164)
 	args = parser.parse_args()
 	
 	ds = DataSet(
@@ -41,7 +41,7 @@ def main():
 	
 	#ds.test_model(graphs=False,print_detail=False)
 	
-	#ds.testing_webcam()
+	ds.testing_webcam()
 
 
 if __name__ == "__main__":
