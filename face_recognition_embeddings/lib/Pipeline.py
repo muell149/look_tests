@@ -100,6 +100,7 @@ class DataSet:
 			pickle.dump(model, open('models/{}.sav'.format(name), 'wb'))
 
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
+			# return train_x, train_y
 		else:
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
@@ -119,6 +120,8 @@ class DataSet:
 
 		test_y = np.asarray(test_y)
 
+		# known_test_x = test_x
+		# known_test_y = test_y
 		y_test_pred = self.model.predict(test_x)
 		y_test_proba = self.model.predict_proba(test_x)
 		real_pred=[]
@@ -135,7 +138,7 @@ class DataSet:
 		if print_detailed==True:
 
 			print("\n*************************************************************************")
-			print("*                       Testing known images                            *")   
+			print("*                       Testing known images                            *")
 			print("*************************************************************************")
 			print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
 			print("------------------------------|-------------------------------|----------")
@@ -224,7 +227,11 @@ class DataSet:
 
 		print("Accuracy on unknown:",score_test_unknown*100,"%\n\n")
 
+		# unknown_test_x = test_x
+		# unknown_test_y = test_y
+
 		return score_test_known*100, score_test_unknown*100
+		# return known_test_x, known_test_y, unknown_test_x, unknown_test_y
 
 	def classify_image(self,im):
 		emb_im = embedder.embeddings(np.array([im]))
@@ -237,7 +244,7 @@ class DataSet:
 		if result == -1:
 			return "Unknown"
 		else:
-			return self.index_to_subject[result] 
+			return self.index_to_subject[result]
 
 	def single_image(self,filename):
 		print("TESTING SINGLE IMAGE\n")
@@ -245,7 +252,7 @@ class DataSet:
 		print("Image was classified as",self.classify_image(im))
 
 	def testing_webcam(self, video_path = 0):
-		
+
 		print("TESTING WEBCAM")
 
 		cap = cv2.VideoCapture(video_path)
@@ -261,7 +268,7 @@ class DataSet:
 				preview = img.copy()
 
 				detections = detector.detect_faces(img)
-				
+
 				if not detections:
 					continue
 				for detection in detections:
@@ -277,15 +284,15 @@ class DataSet:
 					identity = self.classify_image(face_array)
 
 					if identity is not None:
-						
+
 						cv2.rectangle(preview,(abs(box[0]), abs(box[1])), (abs(box[0])+abs(box[2]), abs(box[1])+abs(box[3])),color, 1)
 
 						cv2.putText(preview, identity, (abs(box[0]), abs(box[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1,cv2.LINE_AA)
-						
+
 						print(identity)
-					
+
 			cv2.imshow("preview", preview)
-			
+
 			k = cv2.waitKey(0)
 			if k == 27:
 				break
@@ -310,7 +317,7 @@ def identify_unknown(probabilities,index,scope_limit,intercept_limit):
 		ind = -1
 	else:
 		ind = index
-	
+
 	return ind, new_x, slope, intercept
 
 def load_set(set,size):
