@@ -13,7 +13,7 @@ def grid_search(args_dict):
     grid = ParameterGrid(args_dict)
 
     f=open("accuracy_info.csv","w+")
-    f.write("Slope,Limit,Known Acc,Unknown_acc\n")    
+    f.write("Intercept_Limit,Known_Acc,Unknown_Acc\n")    
     for params in grid:
 
         try:
@@ -21,14 +21,14 @@ def grid_search(args_dict):
                 directory="datasets/LookDataSet",
                 extension="jpg",
                 size=24,
-                slope_limit=params["slope_limit"],
-                intercept_limit=params["intersect_limit"]
+                slope_limit=.5,
+                intercept_limit=params["intercept_limit"]
             )
 
             ds.print_dataset_info()
             ds.load_model(name='model',train=False)
             known_acc,unknown_acc=ds.test_model(graphs=False,print_info=False,print_detail=False)
-            f.write(str(ds.slope_limit)+","+str(ds.intercept_limit)+","+str(known_acc)+","+str(unknown_acc)+"\n")
+            f.write(str(ds.intercept_limit)+","+str(known_acc)+","+str(unknown_acc)+"\n")
             counter = counter + 1
             print("Progress:",counter*100/(5*60),"%")
 
@@ -38,8 +38,7 @@ def grid_search(args_dict):
 
 def main():
     params_grid = {
-        "slope_limit": [i for i in np.linspace(0.3,0.5,num=5)],
-        "intersect_limit": [i for i in np.linspace(0.17,0.22,num=60)]
+        "intercept_limit": [i for i in np.linspace(0.16,0.22,num=200)]
     }
 
     grid_search(params_grid)
