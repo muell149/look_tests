@@ -9,25 +9,31 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import Normalizer
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
-from sklearn.linear_model import LinearRegression
-import heapq
-import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.metrics import precision_recall_fscore_support, classification_report, accuracy_score
+from sklearn.utils import shuffle
+
+import sys
+from joblib import dump, load
+import json
+
+import annoy
 
 detector = MTCNN()
 embedder = FaceNet()
 
 class DataSet:
-	def __init__(self, directory, extension, size, slope_limit, intercept_limit):
+	def __init__(self, directory, extension, size, lof_nn, Ntrees):
 
 		self.train_images = {}
 		self.test_images_known = {}
-		self.test_images_unknown = {}
+		self.unknown_images = {}
 		self.test_images_group = []
 		self.classes = {}
 		self.size=size
-		self.slope_limit = slope_limit
-		self.intercept_limit = intercept_limit
+		self.lof_nn = lof_nn
+		self.Ntrees = Ntrees
 
 		aux = glob.glob( directory + "/Train/*" )
 		for d in aux:
@@ -53,7 +59,7 @@ class DataSet:
 		for d in aux:
 			d=d.replace("\\","/")
 			images = glob.glob(d + "/*." + extension)
-			self.test_images_unknown[d.split("/")[-1]]=images
+			self.unknown_images[d.split("/")[-1]]=images
 
 		aux = glob.glob( directory + "/Group" )
 		for d in aux:
@@ -69,188 +75,160 @@ class DataSet:
 		print("Number of subjects for training:", self.subjects_number)
 		print("Images per subject for training:", len(self.train_images[self.index_to_subject[0]]))
 		print("Size of the images to identify: ", self.size)
-		print("Slope limit:	", self.slope_limit)
-		print("Intercept limit:	", self.intercept_limit)
 		print("\n")
 
-	def load_model(self,name,train=False):
+
+	def load_models(self,LOF_name,Annoy_name,train=False):
 		if train:
+
 			print("\n\n")
 			print("*"*50,"\n*                START TRAINING                  *")
 			print("*"*50,"\n")
+
 			if not os.path.exists('models'):
 				os.makedirs('models')
 
+			# Known training set
+
 			# Getting the arrays for the training
-			train_y_subjects, train_x = load_set(self.train_images, size = 160)
+			Y_train_known_subjects, X_train_known = load_set(self.train_images, size = 160)
 
 			# Getting embeddings from FaceNet and normalizing them
-			train_embeddings = embedder.embeddings(train_x)
-			train_x = Normalizer(norm='l2').transform(train_embeddings)
+			train_known_embeddings = embedder.embeddings(X_train_known)
+			X_train_known_embeddings = Normalizer(norm='l2').transform(train_known_embeddings)
 
 			# Encoder in order to associate labels with a certain number
-			train_y = []
-			for subject in train_y_subjects:
-				train_y.append(self.subject_to_index[subject])
+			Y_train_known_index = []
+			for subject in Y_train_known_subjects:
+				Y_train_known_index.append(self.subject_to_index[subject])
 
-			train_y = np.asarray(train_y)
+			np.save('models/Y_train_known_index.npy', Y_train_known_index)
 
-			model = SVC(kernel='linear', probability=True)
+			self.Y_train_known_index = np.asarray(Y_train_known_index)
 
-			model.fit(train_x, train_y)
+			# Unknown training set
 
-			pickle.dump(model, open('models/{}.sav'.format(name), 'wb'))
+			# Getting the arrays for the training
+			Y_unknown_subjects, X_unknown = load_set(self.unknown_images, size = self.size)
 
-			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
-			# return train_x, train_y
+			# Getting embeddings from FaceNet and normalizing them
+			unknown_embeddings = embedder.embeddings(X_unknown)
+			X_unknown_embeddings = Normalizer(norm='l2').transform(unknown_embeddings)
+
+			# Separating training and testing for the unknown
+			Y_unknown_subjects, X_unknown_embeddings = shuffle(Y_unknown_subjects,X_unknown_embeddings)
+
+			Y_train_unknown_subjects = []
+			X_train_unknown_embeddings = []
+
+			training_percentage = 0.2
+			aux = int(training_percentage*len(Y_unknown_subjects))
+			counter = 0
+
+			while counter <= aux:
+				Y_train_unknown_subjects.append(Y_unknown_subjects[-1])
+				X_train_unknown_embeddings.append(X_unknown_embeddings[-1])
+				Y_unknown_subjects=np.delete(Y_unknown_subjects, -1)
+				X_unknown_embeddings=np.delete(X_unknown_embeddings, -1, axis = 0)
+				counter = counter + 1
+
+			X_train_unknown_embeddings = np.array(X_train_unknown_embeddings)
+
+			# Local Outlier Factor
+
+			contamination = len(Y_unknown_subjects)/(len(Y_unknown_subjects) + len(Y_train_known_subjects))
+
+			clf = LocalOutlierFactor(
+            		n_neighbors=self.lof_nn,
+            		novelty=True,
+            		contamination=contamination
+        		)
+ 
+			clf.fit( np.vstack((X_train_known_embeddings,X_train_unknown_embeddings)) )
+			
+			dump(clf, 'models/{}.joblib'.format(LOF_name)) 
+
+			# Annoy 
+
+			vector_length = X_train_known_embeddings.shape[1]
+
+			t = annoy.AnnoyIndex(vector_length,metric="angular")
+			
+			for i, v in enumerate(X_train_known_embeddings):
+				t.add_item(i, v)
+				
+			t.build(self.Ntrees)
+			
+			t.save('models/{}.ann'.format(Annoy_name))
+			
+			# Load Models
+
+			self.LOF_model = load('models/{}.joblib'.format(LOF_name))
+
+			self.annoy_model = annoy.AnnoyIndex(512, metric="angular")
+			self.annoy_model.load('models/{}.ann'.format(Annoy_name))
+
 		else:
-			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
-	def test_model(self,graphs=False,print_detail=False):
-		print("\n\n")
-		print("*"*50,"\n*             START TESTING (Known)              *")
-		print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size)
+			self.Y_train_known_index = np.load('models/Y_train_known_index.npy')
 
-		test_embeddings = embedder.embeddings(test_x)
-		test_x = Normalizer(norm='l2').transform(test_embeddings)
+			self.LOF_model = load('models/{}.joblib'.format(LOF_name))
 
-		# Encoder in order to associate labels with a certain number
-		test_y = []
-		for subject in test_y_subjects:
-			test_y.append(self.subject_to_index[subject])
-
-		test_y = np.asarray(test_y)
-
-		# known_test_x = test_x
-		# known_test_y = test_y
-		y_test_pred = self.model.predict(test_x)
-		y_test_proba = self.model.predict_proba(test_x)
-		real_pred=[]
-		slopes=[]
-		intercepts=[]
-		y_proba_new = []
-		for pred, proba in zip(y_test_pred,y_test_proba):
-			result, y_proba, slope, intercept=identify_unknown(probabilities=proba,index=pred,slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
-			real_pred.append(result)
-			slopes.append(slope)
-			intercepts.append(intercept)
-			y_proba_new.append(y_proba)
-
-		if print_detail==True:
-
-			print("\n*************************************************************************")
-			print("*                       Testing known images                            *")
-			print("*************************************************************************")
-			print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
-			print("------------------------------|-------------------------------|----------")
-			for pred, test in zip(real_pred,test_y):
-				if pred==-1:
-					result="incorrect"
-					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test], "* NOT IN DB *", result))
-				else:
-					if pred==test:
-						result="correct"
-					else:
-						result="incorrect"
-					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test],self.index_to_subject[pred], result))
-
-
-		if graphs==True:
-
-			if not os.path.exists('Graphs_{}/Known'.format(self.size)):
-				os.makedirs('Graphs_{}/Known'.format(self.size))
-
-			counter=0
-			for prob_vec,class_result,slope,intercept in zip(y_proba_new,y_test_pred,slopes,intercepts):
-				x = range(len(prob_vec))
-				x_val = np.array(x)
-				y_val = intercept + slope*x_val
-				plt.plot(x,prob_vec,'ro')
-				plt.plot(x_val,y_val,'--')
-				plt.xlabel("Class")
-				plt.ylabel("Probability")
-				plt.ylim(0.,1.05)
-				plt.savefig('Graphs_{}/Known/plot_class_{}_{}.png'.format(self.size,class_result,counter), dpi=300)
-				plt.close()
-				counter = counter +1
-
-		score_test_known = accuracy_score(test_y,real_pred)
-		print("Accuracy on known:",score_test_known*100,"%\n\n")
-
-
-
-		print("\n\n")
-		print("*"*50,"\n*            START TESTING (Unknown)             *")
-		print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size)
-
-		test_embeddings = embedder.embeddings(test_x)
-		test_x = Normalizer(norm='l2').transform(test_embeddings)
-
-		test_y = [-1 for i in range(len(test_y_subjects))]
-
-		test_y = np.asarray(test_y)
-
-		y_test_pred = self.model.predict(test_x)
-		y_test_proba = self.model.predict_proba(test_x)
-		real_pred=[]
-		slopes=[]
-		intercepts=[]
-		y_proba_new = []
-		for pred, proba in zip(y_test_pred,y_test_proba):
-			result, y_proba, slope, intercept =identify_unknown(probabilities=proba,index=pred,slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
-			real_pred.append(result)
-			slopes.append(slope)
-			intercepts.append(intercept)
-			y_proba_new.append(y_proba)
-
-		if graphs==True:
-
-			if not os.path.exists('Graphs_{}/Unknown'.format(self.size)):
-				os.makedirs('Graphs_{}/Unknown'.format(self.size))
-
-			counter=0
-			for prob_vec,class_result,slope,intercept in zip(y_proba_new,y_test_pred,slopes,intercepts):
-				x = range(len(prob_vec))
-				x_val = np.array(x)
-				y_val = intercept + slope*x_val
-				plt.plot(x,prob_vec,'ro')
-				plt.plot(x_val,y_val,'--')
-				plt.xlabel("Class")
-				plt.ylabel("Probability")
-				plt.ylim(0.,1.05)
-				plt.savefig('Graphs_{}/Unknown/plot_class_{}_{}.png'.format(self.size,class_result,counter), dpi=300)
-				plt.close()
-				counter = counter +1
-
-		score_test_unknown = accuracy_score(test_y,real_pred)
-
-		print("Accuracy on unknown:",score_test_unknown*100,"%\n\n")
-
-		# unknown_test_x = test_x
-		# unknown_test_y = test_y
-
-		return score_test_known*100, score_test_unknown*100
-		# return known_test_x, known_test_y, unknown_test_x, unknown_test_y
+			self.annoy_model = annoy.AnnoyIndex(512, metric="angular")
+			self.annoy_model.load('models/{}.ann'.format(Annoy_name))
 
 	def classify_image(self,im):
-		emb_im = embedder.embeddings(np.array([im]))
 
-		pred = self.model.predict(emb_im)
-		pred_proba = self.model.predict_proba(emb_im)
+		emb = embedder.embeddings(np.array([im]))
+		emb_im = Normalizer(norm='l2').transform(emb)
+		out_or_in = self.LOF_model.predict(emb_im.reshape(1, -1))
 
-		result,_,_,_ = identify_unknown(probabilities=pred_proba[0], index=pred[0], slope_limit=self.slope_limit,intercept_limit=self.intercept_limit)
-
-		if result == -1:
-			return "Unknown"
-		else:
-			return self.index_to_subject[result]
+		if out_or_in == -1:
+			return -1
+		elif out_or_in == 1:
+			result = self.Y_train_known_index[self.annoy_model.get_nns_by_vector(emb_im.reshape(512, 1), 5,include_distances=False)[0]]
+			return result
 
 	def single_image(self,filename):
 		print("TESTING SINGLE IMAGE\n")
 		im = extract_face(filename,self.size)
-		print("Image was classified as",self.classify_image(im))
+		print("Image was classified as",self.index_to_subject[self.classify_image(im)])
+
+	def test_model(self,print_detail=False):
+
+		print("\n\n")
+		print("*"*50,"\n*             START TESTING (Known)              *")
+		print("*"*50,"\n")
+
+		Y_test_known_subjects, X_test_known = load_set(self.test_images_known, size = self.size)
+
+		Y_real=[]
+		for subject in Y_test_known_subjects:
+			Y_real.append(self.subject_to_index[subject])
+
+		known_prediction = []
+		for subject in X_test_known:
+			known_prediction.append(self.classify_image(subject))
+
+		# if print_detail==True:
+
+		# 	print("\n*************************************************************************")
+		# 	print("*                       Testing known images                            *")
+		# 	print("*************************************************************************")
+		# 	print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+		# 	print("------------------------------|-------------------------------|----------")
+		# 	for pred, test in zip(known_prediction,test_y):
+		# 		if pred==-1:
+		# 			result="incorrect"
+		# 			print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test], "* NOT IN DB *", result))
+		# 		else:
+		# 			if pred==test:
+		# 				result="correct"
+		# 			else:
+		# 				result="incorrect"
+		# 			print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test],self.index_to_subject[pred], result))
+
+		print("Unknown accuracy score: ", accuracy_score(Y_real,known_prediction)*100,"%")
 
 	def testing_webcam(self, video_path = 0):
 
@@ -297,29 +275,6 @@ class DataSet:
 			k = cv2.waitKey(0)
 			if k == 27:
 				break
-
-def identify_unknown(probabilities,index,slope_limit,intercept_limit):
-	new_x = []
-	maximum = probabilities[index]
-	for v in probabilities:
-		aux = v/maximum
-		new_x.append(aux)
-
-	y = np.delete(new_x,index)
-	x = np.array([i for i in range(len(y))]).reshape((-1,1))
-
-	regressor = LinearRegression()
-	model_regressor = regressor.fit(x,y)
-
-	slope = model_regressor.coef_
-	intercept = model_regressor.intercept_
-
-	if abs(slope)>=slope_limit or intercept>=intercept_limit:
-		ind = -1
-	else:
-		ind = index
-
-	return ind, new_x, slope, intercept
 
 def load_set(set,size):
 	print("\nLoading set...\n")
