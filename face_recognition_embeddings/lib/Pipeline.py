@@ -82,7 +82,7 @@ class DataSet:
 				os.makedirs('models')
 
 			# Getting the arrays for the training
-			train_y_subjects, train_x = load_set(self.train_images, size = 160, print_info=True)
+			train_y_subjects, train_x = load_set(self.train_images, size = 160)
 
 			# Getting embeddings from FaceNet and normalizing them
 			train_embeddings = embedder.embeddings(train_x)
@@ -106,12 +106,11 @@ class DataSet:
 		else:
 			self.model = pickle.load(open('models/{}.sav'.format(name), 'rb'))
 
-	def test_model(self,graphs=False,print_info=True,print_detail=False):
-		if print_info:
-			print("\n\n")
-			print("*"*50,"\n*             START TESTING (Known)              *")
-			print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size, print_info=print_info)
+	def test_model(self,graphs=False,print_detail=False):
+		print("\n\n")
+		print("*"*50,"\n*             START TESTING (Known)              *")
+		print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_known, size = self.size)
 
 		test_embeddings = embedder.embeddings(test_x)
 		test_x = Normalizer(norm='l2').transform(test_embeddings)
@@ -181,11 +180,10 @@ class DataSet:
 
 
 
-		if print_info:
-			print("\n\n")
-			print("*"*50,"\n*            START TESTING (Unknown)             *")
-			print("*"*50,"\n")
-		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size,print_info=print_info)
+		print("\n\n")
+		print("*"*50,"\n*            START TESTING (Unknown)             *")
+		print("*"*50,"\n")
+		test_y_subjects, test_x = load_set(self.test_images_unknown, size = self.size)
 
 		test_embeddings = embedder.embeddings(test_x)
 		test_x = Normalizer(norm='l2').transform(test_embeddings)
@@ -323,9 +321,8 @@ def identify_unknown(probabilities,index,slope_limit,intercept_limit):
 
 	return ind, new_x, slope, intercept
 
-def load_set(set,size,print_info):
-	if print_info:
-		print("\nLoading set...\n")
+def load_set(set,size):
+	print("\nLoading set...\n")
 	images = []
 	labels = []
 	for person in set:
@@ -336,10 +333,8 @@ def load_set(set,size,print_info):
 			else:
 				images.append(a)
 				labels.append(person)
-		if print_info:
-			print("Got",len(set[person]),"images for subject",person)
-	if print_info:
-		print("\n")
+		print("Got",len(set[person]),"images for subject",person)
+	print("\n")
 	return np.asarray(labels),np.asarray(images)
 
 
