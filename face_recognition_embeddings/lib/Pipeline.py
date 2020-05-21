@@ -91,7 +91,7 @@ class DataSet:
 			# Known training set
 
 			# Getting the arrays for the training
-			Y_train_known_subjects, X_train_known = load_set(self.train_images, size = 160)
+			Y_train_known_subjects, X_train_known = load_set(self.train_images, self.size)
 
 			# Getting embeddings from FaceNet and normalizing them
 			train_known_embeddings = embedder.embeddings(X_train_known)
@@ -116,7 +116,7 @@ class DataSet:
 			X_unknown_embeddings = Normalizer(norm='l2').transform(unknown_embeddings)
 
 			# Separating training and testing for the unknown
-			Y_unknown_subjects, X_unknown_embeddings = shuffle(Y_unknown_subjects,X_unknown_embeddings)
+			self.X_unknown,self.Y_unknown_subjects,self.X_unknown_embeddings = shuffle(X_unknown,Y_unknown_subjects,X_unknown_embeddings,random_state=42)
 
 			Y_train_unknown_subjects = []
 			X_train_unknown_embeddings = []
@@ -124,13 +124,17 @@ class DataSet:
 			training_percentage = 0.2
 			aux = int(training_percentage*len(Y_unknown_subjects))
 			counter = 0
-
 			while counter <= aux:
-				Y_train_unknown_subjects.append(Y_unknown_subjects[-1])
-				X_train_unknown_embeddings.append(X_unknown_embeddings[-1])
-				Y_unknown_subjects=np.delete(Y_unknown_subjects, -1)
-				X_unknown_embeddings=np.delete(X_unknown_embeddings, -1, axis = 0)
+				Y_train_unknown_subjects.append(self.Y_unknown_subjects[-1])
+				X_train_unknown_embeddings.append(self.X_unknown_embeddings[-1])
+				self.X_unknown=np.delete(self.X_unknown, -1, axis = 0)
+				self.Y_unknown_subjects=np.delete(self.Y_unknown_subjects, -1)
+				self.X_unknown_embeddings=np.delete(self.X_unknown_embeddings, -1, axis = 0)
 				counter = counter + 1
+
+			np.save('models/X_unknown.npy', self.X_unknown)
+			np.save('models/Y_unknown_subject.npy', self.Y_unknown_subjects)
+			np.save('models/X_unknown_embeddings.npy', self.X_unknown_embeddings)
 
 			X_train_unknown_embeddings = np.array(X_train_unknown_embeddings)
 
@@ -169,9 +173,11 @@ class DataSet:
 			self.annoy_model.load('models/{}.ann'.format(Annoy_name))
 
 		else:
-
+			
+			self.X_unknown = np.load('models/X_unknown.npy')
 			self.Y_train_known_index = np.load('models/Y_train_known_index.npy')
-
+			self.Y_unknown_subjects = np.load('models/Y_unknown_subjects.npy')
+			self.X_unknown_embeddings = np.load('models/X_unknown_embeddings.npy')
 			self.LOF_model = load('models/{}.joblib'.format(LOF_name))
 
 			self.annoy_model = annoy.AnnoyIndex(512, metric="angular")
@@ -205,30 +211,57 @@ class DataSet:
 		Y_real=[]
 		for subject in Y_test_known_subjects:
 			Y_real.append(self.subject_to_index[subject])
-
+			
 		known_prediction = []
 		for subject in X_test_known:
 			known_prediction.append(self.classify_image(subject))
 
-		# if print_detail==True:
+		if print_detail==True:
 
-		# 	print("\n*************************************************************************")
-		# 	print("*                       Testing known images                            *")
-		# 	print("*************************************************************************")
-		# 	print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
-		# 	print("------------------------------|-------------------------------|----------")
-		# 	for pred, test in zip(known_prediction,test_y):
-		# 		if pred==-1:
-		# 			result="incorrect"
-		# 			print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test], "* NOT IN DB *", result))
-		# 		else:
-		# 			if pred==test:
-		# 				result="correct"
-		# 			else:
-		# 				result="incorrect"
-		# 			print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test],self.index_to_subject[pred], result))
+			print("\n*************************************************************************")
+			print("*                       Testing known images                            *")
+			print("*************************************************************************")
+			print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+			print("------------------------------|-------------------------------|----------")
+			for pred, test in zip(known_prediction,Y_real):
+				if pred==-1:
+					result="incorrect"
+					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test], "* NOT IN DB *", result))
+				else:
+					if pred==test:
+						result="correct"
+					else:
+						result="incorrect"
+					print("{:<30}| {:<30}| {:<10}".format(self.index_to_subject[test],self.index_to_subject[pred], result))
 
-		print("Unknown accuracy score: ", accuracy_score(Y_real,known_prediction)*100,"%")
+		print("\nKnown accuracy score: ", accuracy_score(Y_real,known_prediction)*100,"%\n\n\n")
+
+
+		print("\n\n")
+		print("*"*50,"\n*             START TESTING (Unknown)             *")
+		print("*"*50,"\n")
+
+		unknown_prediction = []
+		for subject in self.X_unknown:
+			unknown_prediction.append(self.classify_image(subject))
+
+
+		if print_detail==True:
+
+			print("\n*************************************************************************")
+			print("*                       Testing unknown images                            *")
+			print("*************************************************************************")
+			print("TEST SUBJECT                  | CLASSIFICATION                | RESULT   ")
+			print("------------------------------|-------------------------------|----------")
+			for pred, subject in zip(unknown_prediction,self.Y_unknown_subjects):
+				if pred==-1:
+					result="Correct"
+					print("{:<30}| {:<30}| {:<10}".format(subject, "* NOT IN DB *", result))
+				else:
+					result="incorrect"
+					print("{:<30}| {:<30}| {:<10}".format(subject,self.index_to_subject[pred], result))
+
+		print("\nKnown accuracy score: ", accuracy_score(np.full(len(unknown_prediction),-1),unknown_prediction)*100,"%\n\n\n")
 
 	def testing_webcam(self, video_path = 0):
 
