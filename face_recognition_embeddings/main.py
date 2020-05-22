@@ -6,7 +6,7 @@ def main():
 	parser.add_argument("--directory",			"-dir",	help="Dataset directory",			type=str,	default="datasets/LookDataSet")
 	parser.add_argument("--extension",			"-ext",	help="Dataset images extension",	type=str,	default="jpg")
 	parser.add_argument("--size",				"-si",	help="Image size",					type=int,	default=24)
-	parser.add_argument("--lof_nn",    "-lof_nn", help="Local Outlier Factor Nearest Neighbour Number", type=int, default=22)
+	parser.add_argument("--lof_nn",    "-lof_nn", help="Local Outlier Factor Nearest Neighbour Number", type=int, default=13)
 	parser.add_argument("--ntrees",   "-nt", help="Number of trees Annoy", type=int, default=10)
 	args = parser.parse_args()
 	
